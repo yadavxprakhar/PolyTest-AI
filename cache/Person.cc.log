@@ -1,0 +1,7 @@
+  The `getDepartment` function takes a `clientPtr`, an `rcb` callback to be called with the department, and an `ecb` exception callback. It constructs a SQL query using the `sql` string and the value of the `id_` field as a parameter, and then calls the `>>` operator on the `DbClientPtr` object to execute the query.
+
+The `getJob` function is similar to `getDepartment`, but it queries for jobs instead of departments.
+
+The `getPersons` function also constructs a SQL query using the `sql` string and the value of the `id_` field as a parameter, and then calls the `>>` operator on the `DbClientPtr` object to execute the query. The result is then passed to the `rcb` callback.
+
+Note that in all three functions, the `UnexpectedRows` exception is thrown if the number of rows returned by the query is not what was expected (either 0 or more than one).

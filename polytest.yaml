@@ -1,0 +1,17 @@
+provider: mock
+model: gemini-1.5-flash
+endpoint: http://localhost:11434/api/generate
+cache_dir: cache
+output_dir: tests
+exclude_dirs:
+- node_modules
+- .venv
+- venv
+- env
+- bin
+- obj
+- build
+- dist
+- third_party
+- .git
+- __pycache__
