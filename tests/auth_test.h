@@ -1,5 +1,4 @@
 // AI-Generated Mock Test Suite for source_file using Google Test
-Module Type
 // Created by PolyTest AI (Offline Mock Mode)
 
 #include <gtest/gtest.h>

@@ -7,6 +7,8 @@ from core.context.context_builder import ContextBuilder
 from core.llm.llm_client import LLMClient
 from core.llm.prompt_builder import PromptBuilder
 from core.llm.response_parser import ResponseParser
+from core.validator.syntax_validator import SyntaxValidator
+
 
 class TestGenerator:
     """Orchestrates the entire language-detection, code-parsing, prompt-building, and test-generation pipeline."""
@@ -25,6 +27,7 @@ class TestGenerator:
         self.context_builder = ContextBuilder()
         self.prompt_builder = PromptBuilder()
         self.response_parser = ResponseParser()
+        self.validator = SyntaxValidator(cache_dir=self.cache_dir)
         
         if self.cache_dir:
             os.makedirs(self.cache_dir, exist_ok=True)
@@ -127,6 +130,14 @@ class TestGenerator:
 
         # 8. Parse the code response
         generated_test_code = self.response_parser.extract_code(llm_response)
+
+        # 8.5. Validate generated test code syntax
+        is_valid, validation_msg = self.validator.validate(generated_test_code, lang_info.language)
+        if not is_valid:
+            return {
+                "status": "failed",
+                "error": f"Syntax Validation Failure: {validation_msg}"
+            }
 
         # 9. Format output test file name
         test_file_name = self._format_test_filename(file_name, lang_info.language, target_framework)

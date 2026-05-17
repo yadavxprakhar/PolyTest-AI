@@ -244,6 +244,7 @@ def cmd_generate(args):
                 forced_framework=framework,
                 use_cache=not args.no_cache
             )
+            res["source_file"] = file
             results.append(res)
             progress.advance(task)
 
@@ -266,7 +267,7 @@ def cmd_generate(args):
             summary_table.add_row(src_rel, dest_rel, r["framework"], "[bold green]Success[/bold green]", cache_status)
         else:
             summary_table.add_row(
-                os.path.basename(file), 
+                os.path.basename(r.get("source_file", "Unknown")), 
                 "N/A", 
                 "N/A", 
                 f"[bold red]Failed: {r.get('error')}[/bold red]", 

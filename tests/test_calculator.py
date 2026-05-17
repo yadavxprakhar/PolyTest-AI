@@ -1,5 +1,4 @@
 # AI-Generated Mock Test Suite for source_file using pytest
-Module Type
 # Created by PolyTest AI (Offline Mock Mode)
 
 import pytest

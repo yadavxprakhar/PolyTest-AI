@@ -6,12 +6,12 @@ class MockProvider(BaseLLMProvider):
 
     def generate(self, prompt: str, system_instruction: str = "") -> str:
         # Extract target file name, language, and framework from the prompt using regex
-        file_name_match = re.search(r'file\s+name:\s*[\'"`]?([A-Za-z0-9_$.-]+)[\'"`]?', prompt, re.IGNORECASE)
-        language_match = re.search(r'language:\s*([A-Za-z0-9#+]+)', prompt, re.IGNORECASE)
-        framework_match = re.search(r'framework:\s*([A-Za-z0-9\s]+)', prompt, re.IGNORECASE)
+        file_name_match = re.search(r'file\s+name:\s*[\'"`]?([^\n\r\'"`]+)[\'"`]?', prompt, re.IGNORECASE)
+        language_match = re.search(r'language:\s*([^\n\r]+)', prompt, re.IGNORECASE)
+        framework_match = re.search(r'framework:\s*([^\n\r]+)', prompt, re.IGNORECASE)
 
-        file_name = file_name_match.group(1) if file_name_match else "source_file"
-        language = language_match.group(1) if language_match else "Python"
+        file_name = file_name_match.group(1).strip() if file_name_match else "source_file"
+        language = language_match.group(1).strip() if language_match else "Python"
         framework = framework_match.group(1).strip() if framework_match else "pytest"
 
         # Extract class names from the JSON structure inside the prompt

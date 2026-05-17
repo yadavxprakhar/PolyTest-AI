@@ -1,5 +1,4 @@
 // AI-Generated Mock Test Suite for source_file using Jest
-Module Type
 // Created by PolyTest AI (Offline Mock Mode)
 
 const { UserService, formatUserGreeting } = require('./source_file');
