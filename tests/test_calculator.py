@@ -1,9 +1,9 @@
-# AI-Generated Mock Test Suite for source_file using pytest
+# AI-Generated Mock Test Suite for calculator.py using pytest
 # Created by PolyTest AI (Offline Mock Mode)
 
 import pytest
 from unittest.mock import Mock, patch
-from source_file import Calculator, process_batch_async
+from calculator import Calculator, process_batch_async
 
 def test_process_batch_async_happy_path():
     """Test process_batch_async with standard valid input variables."""

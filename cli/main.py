@@ -245,6 +245,24 @@ def cmd_generate(args):
                 use_cache=not args.no_cache
             )
             res["source_file"] = file
+            
+            # Execute test run if requested and generation succeeded
+            if args.run and res.get("status") == "success":
+                from core.runner.test_runner import TestRunner
+                runner = TestRunner()
+                
+                lang = res.get("language") or lang_info.language
+                fw = res.get("framework")
+                test_file = res.get("test_file")
+                
+                run_res = runner.run(
+                    test_file_path=test_file,
+                    language=lang,
+                    framework=fw,
+                    source_file_path=file
+                )
+                res["run_result"] = run_res
+                
             results.append(res)
             progress.advance(task)
 
@@ -256,6 +274,10 @@ def cmd_generate(args):
     summary_table.add_column("Framework", style="magenta")
     summary_table.add_column("Outcome", style="bold cyan")
     summary_table.add_column("Cache", style="dim white")
+    
+    has_run_result = any("run_result" in r for r in results)
+    if has_run_result:
+        summary_table.add_column("Run Outcome", style="bold green")
 
     success_count = 0
     for r in results:
@@ -264,15 +286,41 @@ def cmd_generate(args):
             src_rel = os.path.basename(r["source_file"])
             dest_rel = os.path.basename(r["test_file"])
             cache_status = "HIT" if r.get("cached") else "MISS"
-            summary_table.add_row(src_rel, dest_rel, r["framework"], "[bold green]Success[/bold green]", cache_status)
+            
+            if has_run_result:
+                run_outcome = "N/A"
+                if "run_result" in r:
+                    run_res = r["run_result"]
+                    if run_res["status"] == "passed":
+                        run_outcome = f"[bold green]PASS[/bold green] ({run_res['passed_count']} tests, {run_res['duration_seconds']:.3f}s)"
+                    elif run_res["status"] == "failed":
+                        run_outcome = f"[bold red]FAIL[/bold red] ({run_res['failed_count']} failed, {run_res['duration_seconds']:.3f}s)"
+                    elif run_res["status"] == "error":
+                        if "Warning:" in run_res["raw_output"]:
+                            run_outcome = "[dim yellow]SKIP (Linter Missing)[/dim yellow]"
+                        else:
+                            run_outcome = "[bold red]ERROR[/bold red]"
+                summary_table.add_row(src_rel, dest_rel, r["framework"], "[bold green]Success[/bold green]", cache_status, run_outcome)
+            else:
+                summary_table.add_row(src_rel, dest_rel, r["framework"], "[bold green]Success[/bold green]", cache_status)
         else:
-            summary_table.add_row(
-                os.path.basename(r.get("source_file", "Unknown")), 
-                "N/A", 
-                "N/A", 
-                f"[bold red]Failed: {r.get('error')}[/bold red]", 
-                "N/A"
-            )
+            if has_run_result:
+                summary_table.add_row(
+                    os.path.basename(r.get("source_file", "Unknown")), 
+                    "N/A", 
+                    "N/A", 
+                    f"[bold red]Failed: {r.get('error')}[/bold red]", 
+                    "N/A",
+                    "N/A"
+                )
+            else:
+                summary_table.add_row(
+                    os.path.basename(r.get("source_file", "Unknown")), 
+                    "N/A", 
+                    "N/A", 
+                    f"[bold red]Failed: {r.get('error')}[/bold red]", 
+                    "N/A"
+                )
 
     console.print(summary_table)
     console.print(f"\n[bold green]✔ Done! Successfully generated {success_count}/{len(files_to_process)} test suite(s).[/bold green]")
@@ -306,6 +354,7 @@ def main():
     generate_parser.add_argument("--output", type=str, help="Specify output test folder path.")
     generate_parser.add_argument("--mock", action="store_true", help="Execute completely offline using the Mock test builder.")
     generate_parser.add_argument("--no-cache", action="store_true", help="Bypass cached files and force query the LLM API.")
+    generate_parser.add_argument("--run", action="store_true", help="Execute the generated test suite and print test outcomes.")
     generate_parser.set_defaults(func=cmd_generate)
 
     # Parse arguments

@@ -6,7 +6,7 @@ class MockProvider(BaseLLMProvider):
 
     def generate(self, prompt: str, system_instruction: str = "") -> str:
         # Extract target file name, language, and framework from the prompt using regex
-        file_name_match = re.search(r'file\s+name:\s*[\'"`]?([^\n\r\'"`]+)[\'"`]?', prompt, re.IGNORECASE)
+        file_name_match = re.search(r'file(?:\s+name)?:\s*[\'"`]?([^\n\r\'"`]+)[\'"`]?', prompt, re.IGNORECASE)
         language_match = re.search(r'language:\s*([^\n\r]+)', prompt, re.IGNORECASE)
         framework_match = re.search(r'framework:\s*([^\n\r]+)', prompt, re.IGNORECASE)
 

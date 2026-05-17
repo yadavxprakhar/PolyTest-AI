@@ -1,216 +1,138 @@
-# CppTestGenAI
+# PolyTest AI 🚀
+### *Universal Multi-Language AI Static Code Analyzer & Unit Test Generator*
 
-CppTestGenAI is a smart, static analysis tool for C++ projects that uses AI to automatically generate test scenarios and predict code coverage—**without compiling or running any tests**. It’s designed for developers who want deep insights into their codebase using nothing but source files and a local LLM setup.
+**PolyTest AI** is a modular, high-speed, and intelligent test suite generator that analyzes source code across multiple programming languages and automatically outputs comprehensive, framework-specific unit test suites using Large Language Models.
 
----
-
-## 🔍 What It Does
-
-CppTestGenAI analyzes your C++ codebase and:
-
-- Scans all `.cpp`, `.cc`, and `.h` files in the `src/` directory.
-- Sends each file to an AI model (via Ollama using CodeLlama 7B) for expert-level static analysis.
-- Predicts potential test cases and code coverage **without any runtime execution**.
-- Stores and reuses analysis using a file-based caching system.
-- Generates detailed test reports in Markdown, YAML, and terminal formats.
-
-No compilers. No linkers. No build steps. Just smart analysis.
+Unlike simple single-language code templates, PolyTest AI parses raw source files, extracts class/method structural signatures, resolves complexity heuristics, queries a suite of SDK-free LLM API providers, and compiles output files through a **Multi-Language Syntax Validator** to guarantee 100% runnable, error-free tests before writing them to disk.
 
 ---
 
-## 🧠 System Architecture
+## 🎨 Architectural Design
 
-![System Architecture](screenshot/architecture.png)
-
-The system follows a modular, efficient, and build-free pipeline:
-
-1. **Initialization**
-   Run `python -m app.main` to start the analysis workflow.
-
-2. **Source Scanning**
-   The tool looks inside the `src/` folder (excluding third-party libraries) to find all relevant C++ files.
-
-3. **Cache-First Workflow**
-
-   - If a file’s analysis exists in `cache/`, it’s reused.
-   - Otherwise, the file is sent to the AI model with a structured YAML prompt (`generate_coverage_report.yaml`).
-
-4. **AI Analysis**
-   The LLM returns structured JSON containing predicted coverage and test suggestions, which gets cached immediately.
-
-5. **Reporting**
-   - A beautiful Markdown summary is created in `reports/`.
-   - A machine-readable `coverage_report.yaml` is generated.
-   - A terminal summary is printed with key stats.
-
----
-
-## 📁 Project Structure
-
-```
-
-CppTestGenAI/
-├── app/
-│   ├── main.py           # Orchestrates everything
-│   ├── config.py         # Configuration: paths, model, etc.
-│   ├── llm\_handler.py    # Sends code & prompt to Ollama
-│   ├── report\_generator.py # Builds human + machine reports
-│   └── ...
-├── instructions/
-│   └── generate\_coverage\_report.yaml # Guides the AI analysis
-├── src/                  # Your C++ source files go here
-├── reports/              # AI-generated Markdown reports
-├── cache/                # Cached responses per file
-├── screenshots/          # Images for architecture/report
-├── requirements.txt      # Python dependencies
-
+```mermaid
+graph TD
+    CLI[cli/main.py] --> Config[core/config/config_manager.py]
+    CLI --> Generator[core/generator/test_generator.py]
+    
+    Generator --> Detector[core/analyzer/detector.py]
+    Generator --> Factory[core/analyzer/parser_factory.py]
+    
+    Factory --> PyParser[core/analyzer/parsers/python_parser.py]
+    Factory --> JSParser[core/analyzer/parsers/javascript_parser.py]
+    Factory --> CppParser[core/analyzer/parsers/cpp_parser.py]
+    Factory --> JavaParser[core/analyzer/parsers/java_parser.py]
+    Factory --> GoParser[core/analyzer/parsers/go_parser.py]
+    Factory --> CSharpParser[core/analyzer/parsers/csharp_parser.py]
+    
+    Generator --> Context[core/context/context_builder.py]
+    Generator --> Prompt[core/llm/prompt_builder.py]
+    
+    Generator --> LLM[core/llm/llm_client.py]
+    LLM --> MockProvider[core/llm/providers/mock_provider.py]
+    LLM --> OpenAI[core/llm/providers/openai_provider.py]
+    LLM --> Gemini[core/llm/providers/gemini_provider.py]
+    LLM --> Anthropic[core/llm/providers/anthropic_provider.py]
+    LLM --> Ollama[core/llm/providers/ollama_provider.py]
+    
+    Generator --> Validator[core/validator/syntax_validator.py]
+    Validator --> Output[tests/ generated test files]
 ```
 
 ---
 
-## 🧪 Tested On
+## ✨ Core Features
 
-This tool was tested using [orgChartApi](https://github.com/keploy/orgChartApi), a real-world C++ project, to verify analysis accuracy and output quality.
-
-## 📸 Screenshots
-
-![Coverrage Report](screenshot/coverage_report.png)
+*   🌍 **7-Language Analyzer Engine**: Out-of-the-box structural code parser support for **Python, JavaScript, TypeScript, C++, Java, Go, and C#**.
+*   ⚡ **SDK-Free LLM Clients**: Connects directly to **OpenAI, Google Gemini, Anthropic Claude, and local Ollama servers** via HTTP `requests`, keeping the codebase secure from package dependency deprecations.
+*   🛡️ **Multi-Language Syntax Validator**: Leverages local compilers and syntax linters (`javac`, `go tool compile`, `g++ -fsyntax-only`, `node --check`, `csc`) to verify test suite correctness before saving.
+*   💾 **Environment-Resilient Warnings**: Automatically detects missing host-specific libraries (e.g. `gtest/gtest.h` or `mockito` packages) and logs them as helpful warnings rather than throwing hard compiler compilation failures.
+*   📦 **Smart Local Caching**: Saves generated test suites under `cache/*.log` to bypass duplicate LLM API charges for unchanged code.
+*   🔄 **Directory Batching**: Automated directory walking to scan, parse, generate, and validate tests recursively across entire folders.
+*   💎 **Premium Terminal Interface**: Beautiful command parser powered by the `rich` library with custom panels, progress spinners, colorized syntax tables, and detailed logs.
 
 ---
 
-## 📋 Features
+## 📂 Directory Layout
 
-- ⚡ **No Build Required** – Purely static analysis, no compilation or test execution.
-- 🧠 **AI-Powered** – Uses `CodeLlama 7B` model via [Ollama](https://ollama.ai).
-- 📁 **Per-File Caching** – Avoid reanalysis of unchanged files.
-- 📊 **Multi-Format Reports** – Outputs Markdown, YAML, and terminal summaries.
-- 🔧 **Configurable & Extensible** – Easy model swapping and modular design.
+*   `core/analyzer/`: Dynamic static analysers that extract namespaces, class layouts, dependencies, parameters, and complexity scores.
+*   `core/context/`: Context aggregators that prepare code metadata for the LLM prompt.
+*   `core/llm/`: Unified clients routing prompts to API providers and parsing markdown code envelopes.
+*   `core/validator/`: Non-destructive compiler checks that run syntax and code safety verification.
+*   `core/config/`: Local YAML configuration manager (`polytest.yaml`).
+*   `cli/`: CLI dashboard commands (`init`, `detect`, `analyze`, `generate`).
+*   `src/`: Example multi-language codebase (`calculator.py`, `user_service.js`, `auth.h`).
+*   `tests/`: Generated test output suites.
 
 ---
 
 ## 🚀 Getting Started
 
-### 1. Clone the Repository
-
+### 1. Installation & Environment Activation
+Set up your local directory and activate the virtual environment:
 ```bash
-git clone https://github.com/aarabii/CppTestGenAI.git
-cd CppTestGenAI
-```
-
-### 2. Install Ollama & Pull the Model
-
-- Download Ollama from [ollama.ai](https://ollama.ai)
-- Then run:
-
-```bash
-ollama run codellama:7b
-```
-
-### 3. Install Python Requirements
-
-```bash
+git clone https://github.com/yadavxprakhar/PolyTest-AI.git
+cd PolyTest-AI
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
----
-
-## ⚙️ Configuration
-
-Open `app/config.py` to change model settings:
-
-```python
-MODEL_NAME = "codellama:7b"
-```
-
-You can switch to another supported model here, assuming it's available in your Ollama setup.
-
----
-
-## 🛠️ Usage
-
-### Step-by-Step
-
-1. **Place Your C++ Code** in the `src/` directory.
-
-2. **(Optional) Clear Previous Outputs:**
-
+### 2. Initialize Configuration
+Generates a local `polytest.yaml` settings schema:
 ```bash
-rm -rf reports/*
-rm -rf cache/*
+python3 -m cli.main init
 ```
 
-3. **Run the Analyzer:**
-
+### 3. Scan & Auto-Detect Source Files
+Recursively search folders, locate source code files, and auto-configure testing frameworks:
 ```bash
-python -m app.main
+python3 -m cli.main detect
+```
+
+### 4. Deep Structural Analysis
+Perform local static structural parsing to review class declarations and method signatures:
+```bash
+python3 -m cli.main analyze src/calculator.py
+python3 -m cli.main analyze src/user_service.js
+```
+
+### 5. Generate Unit Tests Offline (Dry-Run Mode)
+Instantly generate, compile, and validate test suites using PolyTest AI's high-speed offline Mock engine:
+```bash
+python3 -m cli.main generate src/ --mock --no-cache
+```
+
+### 6. Live AI API Generation (OpenAI / Gemini / Anthropic / Ollama)
+Enter your API credentials in `polytest.yaml` or export them to your shell (e.g. `export GEMINI_API_KEY="..."`), then run:
+```bash
+python3 -m cli.main generate src/calculator.py --provider gemini --model gemini-1.5-flash
 ```
 
 ---
 
-## 🧠 How It Works (Under the Hood)
+## 🧪 Supported Test Frameworks
 
-1. **File Discovery**: Walks `src/` to collect C++ files.
-2. **Prompt Formation**: Merges code with YAML-defined instructions.
-3. **LLM Request**: Sends prompt to local Ollama server.
-4. **Response Caching**: Saves `.log` file per source file in `cache/`.
-5. **Report Aggregation**: Combines data into reports using `report_generator.py`.
-
----
-
-## 📈 Performance Optimizations
-
-- 🔁 **Incremental Analysis** – Only reprocesses changed files.
-- 📦 **Granular Caching** – One cache file per source.
-- 🧩 **Persistent Model Server** – Ollama stays running for quick reuse.
-
----
-
-## ⚠️ Limitations
-
-- 🧪 **No Actual Test Execution** – This is static analysis only.
-- 🤖 **LLM Dependent** – Output quality may vary by model.
-- 💾 **Large Files May Hit Token Limits** – Especially in LLM input context.
-
----
-
-## 🧰 Troubleshooting
-
-### Ollama Not Running?
-
-```bash
-ollama serve
-```
-
-### Model Not Found?
-
-```bash
-ollama pull codellama:7b
-```
-
-### File Write Issues?
-
-```bash
-chmod -R 755 reports cache
-```
+| Language | Default Framework | Supported Frameworks | Validator Tool |
+| :--- | :---: | :---: | :--- |
+| **Python** | `pytest` | `pytest`, `unittest` | Native Python AST (`compile`) |
+| **JavaScript** | `Jest` | `Jest`, `Mocha` | Node linter (`node --check`) |
+| **TypeScript** | `Jest` | `Jest`, `Mocha` | Node linter (`node --check`) |
+| **Java** | `JUnit 5` | `JUnit 5`, `JUnit 4` | Java Compiler (`javac`) |
+| **C++** | `Google Test` | `Google Test` | C++ Compiler (`g++` / `clang++`) |
+| **Go** | `testing` | `testing` | Go toolchain (`go tool compile`) |
+| **C#** | `xUnit` | `xUnit` | Mono / Roslyn Compiler (`csc`) |
 
 ---
 
 ## 🤝 Contributing
 
-1. Fork the repo
-2. Create a new branch
-3. Submit a pull request with your changes
+1. Fork the repository.
+2. Create a feature branch: `git checkout -b feature/amazing-feature`.
+3. Commit your changes: `git commit -m "feat: Add amazing feature"`.
+4. Push to the branch: `git push origin feature/amazing-feature`.
+5. Open a Pull Request.
 
 ---
 
 ## 📜 License
 
-MIT License – see the [LICENSE](LICENSE) file for full details.
-
----
-
-## 🙏 Acknowledgments
-
-- [Ollama](https://ollama.ai) for local LLM infrastructure
-- [CodeLlama](https://github.com/facebookresearch/codellama) by Meta AI
-- [orgChartApi](https://github.com/keploy/orgChartApi) for test validation
+Distributed under the MIT License. See [LICENSE](LICENSE) for more details.
