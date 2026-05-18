@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { 
   Play, 
   Cpu, 
@@ -276,6 +277,26 @@ public class AuthServiceTest {
 };
 
 const API_BASE = 'http://127.0.0.1:8000/api/v1';
+
+const staggerContainer: Variants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.05
+    }
+  }
+};
+
+const slideUpItem: Variants = {
+  hidden: { opacity: 0, y: 15 },
+  show: { 
+    opacity: 1, 
+    y: 0, 
+    transition: { type: "spring", stiffness: 200, damping: 18 } 
+  }
+};
 
 function App() {
   // Navigation State: 'landing' or 'console'
@@ -654,12 +675,20 @@ function App() {
 
   return (
     <div className="select-none">
-      
-      {/* ========================================================================= */}
-      {/* VIEW MODE 1: PREMIUM SAAS LANDING PAGE */}
-      {/* ========================================================================= */}
-      {viewMode === 'landing' && (
-        <div className="landing-layout-root animation-slideUp">
+      <AnimatePresence mode="wait">
+        
+        {/* ========================================================================= */}
+        {/* VIEW MODE 1: PREMIUM SAAS LANDING PAGE */}
+        {/* ========================================================================= */}
+        {viewMode === 'landing' && (
+          <motion.div 
+            key="landing-view"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            className="landing-layout-root"
+          >
           
           {/* SaaS Header Bar */}
           <nav className={`saas-nav-block ${isScrolled ? 'scrolled' : ''}`}>
@@ -696,18 +725,23 @@ function App() {
 
           {/* SaaS Hero Section */}
           <header className="hero-wrapper">
-            <div className="hero-left">
-              <span className="hero-tag">
+            <motion.div 
+              className="hero-left"
+              variants={staggerContainer}
+              initial="hidden"
+              animate="show"
+            >
+              <motion.span className="hero-tag" variants={slideUpItem}>
                 🚀 Now Supporting 7 Languages
-              </span>
-              <h2 className="hero-heading">
+              </motion.span>
+              <motion.h2 className="hero-heading" variants={slideUpItem}>
                 Autonomous Unit Test Generation For <span className="gradient-text">Developers.</span>
-              </h2>
-              <p className="hero-description" style={{ fontSize: '15px' }}>
+              </motion.h2>
+              <motion.p className="hero-description" style={{ fontSize: '15px' }} variants={slideUpItem}>
                 Statically parse codebase AST architectures, execute compiler linter dry-runs, and validate test suites via sandboxed subprocess runners—instantly and completely offline.
-              </p>
+              </motion.p>
 
-              <div className="hero-cta-buttons">
+              <motion.div className="hero-cta-buttons" variants={slideUpItem}>
                 <button 
                   onClick={() => setViewMode('console')}
                   className="crisp-button"
@@ -724,8 +758,8 @@ function App() {
                 >
                   Install Extension
                 </a>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
 
             {/* Interactive 3D Conceptual Code Compiler Sphere */}
             <div className="hero-right-visual">
@@ -783,7 +817,11 @@ function App() {
             <div className="features-grid-wrapper">
               
               {/* Feature 1 */}
-              <div className="feature-box-crisp">
+              <motion.div 
+                className="feature-box-crisp"
+                whileHover={{ y: -6, scale: 1.015, borderColor: "rgba(0, 245, 255, 0.25)", boxShadow: "0 10px 30px rgba(0, 245, 255, 0.06)" }}
+                transition={{ type: "spring", stiffness: 300, damping: 16 }}
+              >
                 <div className="icon-wrapper-badge cyan">
                   <Code className="w-4 h-4" />
                 </div>
@@ -791,10 +829,14 @@ function App() {
                 <p className="feature-card-desc">
                   State-aware AST parsers statically profile classes, imports, functions, and complexity with zero compiler dependencies.
                 </p>
-              </div>
+              </motion.div>
 
               {/* Feature 2 */}
-              <div className="feature-box-crisp">
+              <motion.div 
+                className="feature-box-crisp"
+                whileHover={{ y: -6, scale: 1.015, borderColor: "rgba(140, 82, 255, 0.25)", boxShadow: "0 10px 30px rgba(140, 82, 255, 0.06)" }}
+                transition={{ type: "spring", stiffness: 300, damping: 16 }}
+              >
                 <div className="icon-wrapper-badge purple">
                   <ShieldCheck className="w-4 h-4" />
                 </div>
@@ -802,10 +844,14 @@ function App() {
                 <p className="feature-card-desc">
                   Automated validation linter compiler scans (e.g. `node --check`, `javac`) catch syntax exceptions prior to writing files.
                 </p>
-              </div>
+              </motion.div>
 
               {/* Feature 3 */}
-              <div className="feature-box-crisp">
+              <motion.div 
+                className="feature-box-crisp"
+                whileHover={{ y: -6, scale: 1.015, borderColor: "rgba(16, 185, 129, 0.25)", boxShadow: "0 10px 30px rgba(16, 185, 129, 0.06)" }}
+                transition={{ type: "spring", stiffness: 300, damping: 16 }}
+              >
                 <div className="icon-wrapper-badge green">
                   <Zap className="w-4 h-4" />
                 </div>
@@ -813,10 +859,14 @@ function App() {
                 <p className="feature-card-desc">
                   Test execution engines trigger local runners (Jest, pytest, JUnit) inside spawned background threads, parsing stdout streams.
                 </p>
-              </div>
+              </motion.div>
 
               {/* Feature 4 */}
-              <div className="feature-box-crisp">
+              <motion.div 
+                className="feature-box-crisp"
+                whileHover={{ y: -6, scale: 1.015, borderColor: "rgba(239, 68, 68, 0.25)", boxShadow: "0 10px 30px rgba(239, 68, 68, 0.06)" }}
+                transition={{ type: "spring", stiffness: 300, damping: 16 }}
+              >
                 <div className="icon-wrapper-badge red">
                   <Layers className="w-4 h-4" />
                 </div>
@@ -824,7 +874,7 @@ function App() {
                 <p className="feature-card-desc">
                   Encodes generated targets under local MD5 prompts caching hashes, saving up to 80% on developer credit costs.
                 </p>
-              </div>
+              </motion.div>
 
             </div>
           </section>
@@ -944,17 +994,23 @@ function App() {
 
           </main>
 
-        </div>
-      )}
+          </motion.div>
+        )}
 
-      {/* ========================================================================= */}
-      {/* VIEW MODE 2: INTERACTIVE DEVELOPER DASHBOARD CONSOLE */}
-      {/* ========================================================================= */}
-      {viewMode === 'console' && (
-        <div className="animation-slideUp">
-          
-          {/* Header HUD Navigation */}
-          <header className="console-hud-bar">
+        {/* ========================================================================= */}
+        {/* VIEW MODE 2: INTERACTIVE DEVELOPER DASHBOARD CONSOLE */}
+        {/* ========================================================================= */}
+        {viewMode === 'console' && (
+          <motion.div 
+            key="console-view"
+            initial={{ opacity: 0, y: 15, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -15, scale: 0.98 }}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+          >
+            
+            {/* Header HUD Navigation */}
+            <header className="console-hud-bar">
             
             {/* Brand logo & workspace returns */}
             <div className="console-hud-left">
@@ -1140,20 +1196,34 @@ function App() {
                 </div>
 
                 {/* Workspace display toggle canvas tabs */}
-                <div className="workspace-canvas-tabs" style={{ display: 'flex', background: 'rgba(255,255,255,0.02)', padding: '3px', borderRadius: '6px', border: '1px solid var(--border-color)', marginBottom: '4px', gap: '4px' }}>
+                <div className="workspace-canvas-tabs" style={{ display: 'flex', background: 'rgba(255,255,255,0.02)', padding: '3px', borderRadius: '6px', border: '1px solid var(--border-color)', marginBottom: '4px', gap: '4px', position: 'relative' }}>
                   <button
                     onClick={() => setCanvasTab('inspector')}
                     className={`preset-tab-btn ${canvasTab === 'inspector' ? 'active' : ''}`}
-                    style={{ padding: '4px 10px', fontSize: '9px', fontFamily: 'var(--font-mono)', borderRadius: '4px' }}
+                    style={{ padding: '4px 10px', fontSize: '9px', fontFamily: 'var(--font-mono)', borderRadius: '4px', position: 'relative', background: 'transparent', border: 'none', cursor: 'pointer' }}
                   >
-                    AST INSPECTOR
+                    <span style={{ position: 'relative', zIndex: 2 }}>AST INSPECTOR</span>
+                    {canvasTab === 'inspector' && (
+                      <motion.div 
+                        layoutId="canvasTabBg" 
+                        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(255,255,255,0.05)', borderRadius: '4px', zIndex: 1 }} 
+                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      />
+                    )}
                   </button>
                   <button
                     onClick={() => setCanvasTab('code')}
                     className={`preset-tab-btn ${canvasTab === 'code' ? 'active' : ''}`}
-                    style={{ padding: '4px 10px', fontSize: '9px', fontFamily: 'var(--font-mono)', borderRadius: '4px' }}
+                    style={{ padding: '4px 10px', fontSize: '9px', fontFamily: 'var(--font-mono)', borderRadius: '4px', position: 'relative', background: 'transparent', border: 'none', cursor: 'pointer' }}
                   >
-                    CODE PREVIEW
+                    <span style={{ position: 'relative', zIndex: 2 }}>CODE PREVIEW</span>
+                    {canvasTab === 'code' && (
+                      <motion.div 
+                        layoutId="canvasTabBg" 
+                        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(255,255,255,0.05)', borderRadius: '4px', zIndex: 1 }} 
+                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      />
+                    )}
                   </button>
                 </div>
 
@@ -1312,27 +1382,48 @@ function App() {
                 <div className="preset-configuration-box" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label className="mono-label" style={{ display: 'block', textAlign: 'left' }}>AI Prompts Preset</label>
                   
-                  <div className="preset-tab-group" style={{ display: 'flex', background: 'rgba(255,255,255,0.02)', padding: '3px', borderRadius: '8px', border: '1px solid var(--border-color)', gap: '4px' }}>
+                  <div className="preset-tab-group" style={{ display: 'flex', background: 'rgba(255,255,255,0.02)', padding: '3px', borderRadius: '8px', border: '1px solid var(--border-color)', gap: '4px', position: 'relative' }}>
                     <button
                       onClick={() => applyPreset('standard')}
                       className={`preset-tab-btn ${selectedPreset === 'standard' ? 'active' : ''}`}
-                      style={{ flex: 1, padding: '6px 0', fontSize: '9px', fontFamily: 'var(--font-mono)', borderRadius: '6px', background: selectedPreset === 'standard' ? 'var(--text-primary)' : 'transparent', color: selectedPreset === 'standard' ? 'var(--bg-primary)' : 'var(--text-secondary)', fontWeight: 600, border: 'none', cursor: 'pointer' }}
+                      style={{ flex: 1, padding: '6px 0', fontSize: '9px', fontFamily: 'var(--font-mono)', borderRadius: '6px', position: 'relative', background: 'transparent', color: selectedPreset === 'standard' ? 'var(--bg-primary)' : 'var(--text-secondary)', fontWeight: 600, border: 'none', cursor: 'pointer' }}
                     >
-                      STANDARD
+                      <span style={{ position: 'relative', zIndex: 2 }}>STANDARD</span>
+                      {selectedPreset === 'standard' && (
+                        <motion.div 
+                          layoutId="presetTabBg" 
+                          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--text-primary)', borderRadius: '6px', zIndex: 1 }} 
+                          transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+                        />
+                      )}
                     </button>
                     <button
                       onClick={() => applyPreset('robust')}
                       className={`preset-tab-btn ${selectedPreset === 'robust' ? 'active' : ''}`}
-                      style={{ flex: 1, padding: '6px 0', fontSize: '9px', fontFamily: 'var(--font-mono)', borderRadius: '6px', background: selectedPreset === 'robust' ? 'var(--text-primary)' : 'transparent', color: selectedPreset === 'robust' ? 'var(--bg-primary)' : 'var(--text-secondary)', fontWeight: 600, border: 'none', cursor: 'pointer' }}
+                      style={{ flex: 1, padding: '6px 0', fontSize: '9px', fontFamily: 'var(--font-mono)', borderRadius: '6px', position: 'relative', background: 'transparent', color: selectedPreset === 'robust' ? 'var(--bg-primary)' : 'var(--text-secondary)', fontWeight: 600, border: 'none', cursor: 'pointer' }}
                     >
-                      ROBUST
+                      <span style={{ position: 'relative', zIndex: 2 }}>ROBUST</span>
+                      {selectedPreset === 'robust' && (
+                        <motion.div 
+                          layoutId="presetTabBg" 
+                          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--text-primary)', borderRadius: '6px', zIndex: 1 }} 
+                          transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+                        />
+                      )}
                     </button>
                     <button
                       onClick={() => applyPreset('fast')}
                       className={`preset-tab-btn ${selectedPreset === 'fast' ? 'active' : ''}`}
-                      style={{ flex: 1, padding: '6px 0', fontSize: '9px', fontFamily: 'var(--font-mono)', borderRadius: '6px', background: selectedPreset === 'fast' ? 'var(--text-primary)' : 'transparent', color: selectedPreset === 'fast' ? 'var(--bg-primary)' : 'var(--text-secondary)', fontWeight: 600, border: 'none', cursor: 'pointer' }}
+                      style={{ flex: 1, padding: '6px 0', fontSize: '9px', fontFamily: 'var(--font-mono)', borderRadius: '6px', position: 'relative', background: 'transparent', color: selectedPreset === 'fast' ? 'var(--bg-primary)' : 'var(--text-secondary)', fontWeight: 600, border: 'none', cursor: 'pointer' }}
                     >
-                      FAST RUN
+                      <span style={{ position: 'relative', zIndex: 2 }}>FAST RUN</span>
+                      {selectedPreset === 'fast' && (
+                        <motion.div 
+                          layoutId="presetTabBg" 
+                          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--text-primary)', borderRadius: '6px', zIndex: 1 }} 
+                          transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+                        />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -1603,9 +1694,10 @@ function App() {
             </defs>
           </svg>
 
-        </div>
-      )}
+          </motion.div>
+        )}
 
+      </AnimatePresence>
     </div>
   );
 }
