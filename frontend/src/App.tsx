@@ -21,7 +21,8 @@ import {
   Sliders,
   AlertTriangle,
   Copy,
-  Download
+  Download,
+  Plus
 } from 'lucide-react';
 
 // --- Types ---
@@ -311,6 +312,12 @@ function App() {
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(SANDBOX_FILES[1]); // PaymentService.ts
   const [isScanning, setIsScanning] = useState<boolean>(false);
   
+  // Add Sandbox File States
+  const [showAddFileForm, setShowAddFileForm] = useState<boolean>(false);
+  const [newFileName, setNewFileName] = useState<string>('');
+  const [newFileLanguage, setNewFileLanguage] = useState<string>('TypeScript');
+  const [newFileFramework, setNewFileFramework] = useState<string>('Jest');
+  
   // Code Inspection States
   const [parsedStructure, setParsedStructure] = useState<ParsedStructure | null>(SANDBOX_STRUCTURES['src/services/PaymentService.ts']);
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState<boolean>(false);
@@ -500,6 +507,62 @@ function App() {
       return;
     }
     setIsLoadingAnalysis(false);
+  };
+
+  // Add Custom Sandbox File
+  const handleAddFileSubmit = () => {
+    if (!newFileName.trim()) return;
+    
+    const inputPath = newFileName.trim();
+    const formattedPath = inputPath.startsWith('src/') ? inputPath : `src/${inputPath}`;
+    
+    const newFile: FileItem = {
+      file_path: formattedPath,
+      language: newFileLanguage,
+      framework: newFileFramework
+    };
+
+    // Add to state files list
+    setFiles(prev => [...prev, newFile]);
+
+    // Populate mock AST parser structure so AST inspector works immediately for this file!
+    const baseName = formattedPath.split('/').pop()?.split('.')[0] || 'CustomService';
+    SANDBOX_STRUCTURES[formattedPath] = {
+      classes: [
+        { 
+          name: baseName, 
+          methods: [
+            { name: 'execute', args: '() -> void' },
+            { name: 'validate', args: '(data: any) -> boolean' }
+          ] 
+        }
+      ],
+      functions: [
+        { name: 'helperUtility', args: '() -> void' }
+      ],
+      imports: ['core', 'utils'],
+      complexity: 'Low'
+    };
+
+    // Also populate mock generated code so Code Preview works!
+    MOCK_GENERATED_CODE[formattedPath] = `// Generated automatically by PolyTest AI mock engine for ${formattedPath.split('/').pop()}
+import { ${baseName} } from './${baseName}';
+
+describe('${baseName} Suite', () => {
+  it('should run execution assertions successfully', () => {
+    expect(true).toBe(true);
+  });
+});
+`;
+
+    // Select the newly added file immediately!
+    handleFileSelect(newFile);
+
+    // Close form and clear
+    setShowAddFileForm(false);
+    setNewFileName('');
+    
+    setTerminalLogs(prev => [...prev, `🟢 Successfully registered custom sandbox module: ${formattedPath}`]);
   };
 
   // Toggle single method selection
@@ -1150,15 +1213,86 @@ function App() {
                   <FolderOpen className="w-3.5 h-3.5 text-cyan-400" />
                   Files Explorer
                 </span>
-                <button 
-                  onClick={triggerAutoDetect}
-                  disabled={isScanning}
-                  style={{ fontSize: '10px', color: 'var(--accent-cyan)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isScanning ? 'animate-spin' : ''}`} />
-                  Sync
-                </button>
+                
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <button 
+                    onClick={() => setShowAddFileForm(!showAddFileForm)}
+                    style={{ fontSize: '10px', color: 'var(--accent-green)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', outline: 'none' }}
+                  >
+                    <Plus className="w-3 h-3" />
+                    Add File
+                  </button>
+                  <button 
+                    onClick={triggerAutoDetect}
+                    disabled={isScanning}
+                    style={{ fontSize: '10px', color: 'var(--accent-cyan)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', outline: 'none' }}
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isScanning ? 'animate-spin' : ''}`} />
+                    Sync
+                  </button>
+                </div>
               </div>
+
+              {/* Inline Add Sandbox File Form */}
+              {showAddFileForm && (
+                <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', boxSizing: 'border-box', textAlign: 'left', marginTop: '6px' }}>
+                  <span className="mono-label" style={{ fontSize: '8px', color: 'var(--text-muted)' }}>ADD NEW SANDBOX FILE</span>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. src/services/AuthService.ts" 
+                      value={newFileName}
+                      onChange={(e) => setNewFileName(e.target.value)}
+                      style={{ background: '#02040a', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '4px 8px', color: '#fff', fontSize: '10px', fontFamily: 'var(--font-mono)', width: '100%', boxSizing: 'border-box' }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <select
+                      value={newFileLanguage}
+                      onChange={(e) => setNewFileLanguage(e.target.value)}
+                      style={{ flex: 1, background: '#02040a', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '4px 6px', color: '#fff', fontSize: '9px', fontFamily: 'var(--font-mono)' }}
+                    >
+                      <option value="TypeScript">TypeScript</option>
+                      <option value="Python">Python</option>
+                      <option value="Go">Go</option>
+                      <option value="Java">Java</option>
+                      <option value="C++">C++</option>
+                    </select>
+                    
+                    <select
+                      value={newFileFramework}
+                      onChange={(e) => setNewFileFramework(e.target.value)}
+                      style={{ flex: 1, background: '#02040a', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '4px 6px', color: '#fff', fontSize: '9px', fontFamily: 'var(--font-mono)' }}
+                    >
+                      <option value="Jest">Jest</option>
+                      <option value="pytest">pytest</option>
+                      <option value="testing">testing</option>
+                      <option value="JUnit 5">JUnit 5</option>
+                      <option value="Google Test">Google Test</option>
+                    </select>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', marginTop: '2px' }}>
+                    <button
+                      onClick={() => {
+                        setShowAddFileForm(false);
+                        setNewFileName('');
+                      }}
+                      style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer' }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleAddFileSubmit}
+                      style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', color: '#fff', background: 'linear-gradient(135deg, var(--accent-cyan), var(--accent-purple))', border: 'none', padding: '2px 8px', borderRadius: '4px', cursor: 'pointer' }}
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Directory Tree */}
               <div className="file-tree-container" style={{ width: '100%' }}>
