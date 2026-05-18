@@ -203,18 +203,44 @@ p {
 /* 1. MARKETING SAAS LANDING PAGE LAYOUT */
 /* ========================================================================= */
 
-/* Navbar block */
-.saas-nav-block {
+.landing-layout-root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-primary);
+}
+
+.landing-inner-wrap {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 40px;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.landing-content-wrap {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 60px; /* Elegant gaps between sections */
+}
+
+/* Navbar block */
+.saas-nav-block {
+  padding: 14px 0;
   border-bottom: 1px solid var(--border-color);
   background: rgba(3, 7, 18, 0.85);
   backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
   z-index: 100;
+  width: 100%;
 }
 
 .brand-icon-box {
@@ -284,14 +310,12 @@ p {
 
 /* Landing Hero block */
 .hero-wrapper {
-  max-w: 1200px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 100px 40px;
+  padding: 80px 0 40px;
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   gap: 40px;
   align-items: center;
+  width: 100%;
 }
 
 .hero-left {
@@ -365,10 +389,8 @@ p {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
-  max-w: 1200px;
   width: 100%;
-  margin: 0 auto;
-  padding: 60px 40px;
+  padding: 40px 0;
 }
 
 .feature-box-crisp {
@@ -418,10 +440,8 @@ p {
 
 /* VS Code Integration Block */
 .saas-vscode-section {
-  max-w: 1200px;
   width: 100%;
-  margin: 0 auto;
-  padding: 80px 40px;
+  padding: 60px 0;
   border-top: 1px solid var(--border-color);
   display: grid;
   grid-template-columns: repeat(12, 1fr);
@@ -508,6 +528,12 @@ p {
 }
 
 /* Pricing grid blocks */
+.pricing-section-wrapper {
+  width: 100%;
+  padding: 60px 0;
+  border-top: 1px solid var(--border-color);
+}
+
 .section-header-block {
   text-align: center;
   display: flex;
@@ -1079,9 +1105,9 @@ p {
 /* 3. COMMON FOOTER AND SYSTEM DESIGN RULES */
 /* ========================================================================= */
 .saas-footer-crisp {
-  padding: 40px 24px;
+  padding: 60px 0 40px;
   border-top: 1px solid var(--border-color);
-  background: #02050c;
+  background: transparent;
   text-align: center;
   font-family: var(--font-mono);
   font-size: 10px;
@@ -1090,6 +1116,7 @@ p {
   flex-direction: column;
   gap: 8px;
   margin-top: auto;
+  width: 100%;
 }
 
 .footer-subtitle-crisp {

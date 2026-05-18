@@ -653,36 +653,40 @@ function App() {
       {/* VIEW MODE 1: PREMIUM SAAS LANDING PAGE */}
       {/* ========================================================================= */}
       {viewMode === 'landing' && (
-        <div className="animation-slideUp">
+        <div className="landing-layout-root animation-slideUp">
           
           {/* SaaS Header Bar */}
           <nav className="saas-nav-block">
-            <div className="flex-row-align">
-              <div className="brand-icon-box">
-                <Cpu className="w-5 h-5 text-cyan-400" />
+            <div className="landing-inner-wrap">
+              <div className="flex-row-align">
+                <div className="brand-icon-box">
+                  <Cpu className="w-5 h-5 text-cyan-400" />
+                </div>
+                <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-cyan-400 via-[#8c52ff] to-purple-400 bg-clip-text text-transparent">PolyTest AI</h1>
               </div>
-              <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-cyan-400 via-[#8c52ff] to-purple-400 bg-clip-text text-transparent">PolyTest AI</h1>
-            </div>
 
-            <div className="saas-nav-links">
-              <a href="#features">Features</a>
-              <a href="#pricing">Pricing</a>
-              <a href="#vscode">VS Code Extension</a>
-              <span className="nav-split-divider" />
-              <div className="nav-status-badge">
-                <span className={`nav-status-dot ${isBackendOnline ? 'active' : 'sandbox'}`} />
-                <span>{isBackendOnline ? 'REST Active' : 'Sandbox Ready'}</span>
+              <div className="saas-nav-links">
+                <a href="#features">Features</a>
+                <a href="#pricing">Pricing</a>
+                <a href="#vscode">VS Code Extension</a>
+                <span className="nav-split-divider" />
+                <div className="nav-status-badge">
+                  <span className={`nav-status-dot ${isBackendOnline ? 'active' : 'sandbox'}`} />
+                  <span>{isBackendOnline ? 'REST Active' : 'Sandbox Ready'}</span>
+                </div>
               </div>
-            </div>
 
-            <button 
-              onClick={() => setViewMode('console')}
-              className="crisp-button"
-            >
-              Launch Console
-              <ArrowRight className="w-4 h-4" />
-            </button>
+              <button 
+                onClick={() => setViewMode('console')}
+                className="crisp-button"
+              >
+                Launch Console
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </nav>
+
+          <main className="landing-content-wrap">
 
           {/* SaaS Hero Section */}
           <header className="hero-wrapper">
@@ -931,6 +935,8 @@ function App() {
               TypeScript Core Stack Platform
             </p>
           </footer>
+
+          </main>
 
         </div>
       )}
