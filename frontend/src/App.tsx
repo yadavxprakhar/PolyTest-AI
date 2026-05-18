@@ -358,74 +358,74 @@ function App() {
     }
   };
 
-  // Radial progress parameters
+  // Radial progress calculations
   const radius = 54;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (syntaxCorrectness / 100) * circumference;
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#080a0f] text-[#f8fafc] select-none">
+    <div className="select-none">
       
       {/* ========================================================================= */}
       {/* VIEW MODE 1: PREMIUM SAAS LANDING PAGE */}
       {/* ========================================================================= */}
       {viewMode === 'landing' && (
-        <div className="flex-1 flex flex-col animation-slideUp">
+        <div className="animation-slideUp">
           
           {/* SaaS Header Bar */}
-          <nav className="sticky top-0 z-50 flex items-center justify-between px-10 py-5 border-b border-white/5 bg-[#0e111a]/85 backdrop-blur-md">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-cyan-400/20 to-purple-600/20 border border-cyan-400/35 shadow-[0_0_15px_rgba(0,245,255,0.1)]">
+          <nav className="saas-navbar">
+            <div className="brand-block">
+              <div className="brand-icon-box">
                 <Cpu className="w-5 h-5 text-cyan-400" />
               </div>
               <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-cyan-400 via-[#8c52ff] to-purple-400 bg-clip-text text-transparent">PolyTest AI</h1>
             </div>
 
-            <div className="hidden lg:flex items-center gap-8 text-xs font-semibold text-[#94a3b8]">
-              <a href="#features" className="hover:text-white transition-colors">Features</a>
-              <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
-              <a href="#vscode" className="hover:text-white transition-colors">VS Code Extension</a>
-              <span className="h-4 w-px bg-white/10" />
-              <div className="flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full ${isBackendOnline ? 'bg-cyan-400' : 'bg-amber-400'} animate-pulse`} />
-                <span className="text-[10px] font-mono uppercase tracking-wider">{isBackendOnline ? 'REST Active' : 'Sandbox Ready'}</span>
+            <div className="navbar-links">
+              <a href="#features">Features</a>
+              <a href="#pricing">Pricing</a>
+              <a href="#vscode">VS Code Extension</a>
+              <span className="nav-split-divider" />
+              <div className="nav-status-badge">
+                <span className={`nav-status-dot ${isBackendOnline ? 'active' : 'sandbox'}`} />
+                <span>{isBackendOnline ? 'REST Active' : 'Sandbox Ready'}</span>
               </div>
             </div>
 
             <button 
               onClick={() => setViewMode('console')}
-              className="glowing-button text-xs py-2 px-5 hover:scale-105"
+              className="glowing-button text-xs"
             >
               Launch Console
-              <ArrowRight className="w-4 h-4 text-[#040815]" />
+              <ArrowRight className="w-4 h-4" />
             </button>
           </nav>
 
           {/* SaaS Hero Section */}
-          <header className="max-w-[1400px] w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 px-10 py-16 items-center">
-            <div className="lg:col-span-6 flex flex-col gap-6 text-left">
-              <span className="px-3.5 py-1 text-[10px] font-bold text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded-full w-fit uppercase tracking-widest font-mono">
+          <header className="saas-hero-section">
+            <div className="hero-left-content">
+              <span className="hero-badge-tag">
                 🚀 Now Supporting 7 Languages
               </span>
-              <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-tight">
+              <h2 className="hero-title">
                 Autonomous Unit Test Generation For <span className="gradient-text">Developers.</span>
               </h2>
-              <p className="text-base text-[#94a3b8]">
+              <p className="hero-description">
                 Statically parse codebase AST architectures, execute compiler linter dry-runs, and validate test suites via sandboxed subprocess runners—instantly and completely offline.
               </p>
 
-              <div className="flex flex-wrap items-center gap-4 mt-2">
+              <div className="hero-cta-buttons">
                 <button 
                   onClick={() => setViewMode('console')}
-                  className="glowing-button py-3.5 px-7 text-sm"
+                  className="glowing-button"
                 >
                   Start Free Workspace
-                  <ArrowRight className="w-4 h-4 text-[#040815]" />
+                  <ArrowRight className="w-4 h-4" />
                 </button>
 
                 <a 
                   href="#vscode"
-                  className="px-6 py-3.5 rounded-xl border border-white/5 bg-[#0e111a] text-xs font-bold text-[#94a3b8] hover:text-white hover:border-white/15 transition-all"
+                  className="secondary-outline-btn"
                 >
                   Install Extension
                 </a>
@@ -433,66 +433,66 @@ function App() {
             </div>
 
             {/* Embedded high-resolution illustration banner */}
-            <div className="lg:col-span-6 flex justify-center">
-              <div className="relative p-2 rounded-3xl border border-white/5 bg-[#0e111a]/50 shadow-[0_0_50px_rgba(140,82,255,0.06)] overflow-hidden max-w-[550px]">
+            <div className="hero-right-visual">
+              <div className="hero-visual-frame">
                 <img 
-                  src="/Users/prakhar/.gemini/antigravity/brain/1284ece2-0a54-41c0-9adc-1c671a8596dc/polytest_saas_hero_1779063800273.png" 
+                  src="/polytest_saas_hero.png" 
                   alt="PolyTest AI Core Compiler Sphere illustration"
-                  className="rounded-2xl border border-white/5 w-full object-cover"
+                  className="hero-visual-image"
                 />
               </div>
             </div>
           </header>
 
           {/* Feature grid Section */}
-          <section id="features" className="max-w-[1400px] w-full mx-auto px-10 py-16 border-t border-white/5">
-            <div className="text-center flex flex-col items-center gap-3 mb-12">
-              <span className="text-xs text-purple-400 font-mono tracking-widest uppercase font-semibold">Engine Capabilities</span>
-              <h3 className="text-2xl md:text-3xl font-bold">Engineered for absolute performance</h3>
+          <section id="features" className="saas-features-section">
+            <div className="section-header-block">
+              <span className="section-label">Engine Capabilities</span>
+              <h3 className="section-main-heading">Engineered for absolute performance</h3>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="features-grid-custom">
               
               {/* Feature 1 */}
-              <div className="glass-panel p-6 flex flex-col gap-4 text-left">
-                <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 w-fit">
+              <div className="feature-card-custom">
+                <div className="feature-icon-badge cyan">
                   <Code className="w-5 h-5 text-cyan-400" />
                 </div>
-                <h4 className="text-base font-bold text-white">Multi-Language AST</h4>
-                <p className="text-xs text-[#94a3b8]">
+                <h4 className="feature-card-title">Multi-Language AST</h4>
+                <p className="feature-card-desc">
                   State-aware AST parsers statically profile classes, imports, functions, and heuristic complexities with zero native compilers setup.
                 </p>
               </div>
 
               {/* Feature 2 */}
-              <div className="glass-panel p-6 flex flex-col gap-4 text-left">
-                <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 w-fit">
+              <div className="feature-card-custom">
+                <div className="feature-icon-badge purple">
                   <ShieldCheck className="w-5 h-5 text-purple-400" />
                 </div>
-                <h4 className="text-base font-bold text-white">Syntax drycompile linter</h4>
-                <p className="text-xs text-[#94a3b8]">
+                <h4 className="feature-card-title">Syntax drycompile linter</h4>
+                <p className="feature-card-desc">
                   Automated validation linter compiler scans (e.g. `node --check`, `javac`) filter code exceptions prior to writing files.
                 </p>
               </div>
 
               {/* Feature 3 */}
-              <div className="glass-panel p-6 flex flex-col gap-4 text-left">
-                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 w-fit">
+              <div className="feature-card-custom">
+                <div className="feature-icon-badge green">
                   <Zap className="w-5 h-5 text-emerald-400" />
                 </div>
-                <h4 className="text-base font-bold text-white">Subprocess execution</h4>
-                <p className="text-xs text-[#94a3b8]">
+                <h4 className="feature-card-title">Subprocess execution</h4>
+                <p className="feature-card-desc">
                   Test execution engines trigger local runners (Jest, pytest, JUnit) inside spawned background threads, parsing stdout streams.
                 </p>
               </div>
 
               {/* Feature 4 */}
-              <div className="glass-panel p-6 flex flex-col gap-4 text-left">
-                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 w-fit">
+              <div className="feature-card-custom">
+                <div className="feature-icon-badge rose">
                   <Layers className="w-5 h-5 text-rose-400" />
                 </div>
-                <h4 className="text-base font-bold text-white">MD5 Prompt Caching</h4>
-                <p className="text-xs text-[#94a3b8]">
+                <h4 className="feature-card-title">MD5 Prompt Caching</h4>
+                <p className="feature-card-desc">
                   Encodes generated targets under local MD5 prompts caching hashes, saving up to 80% on developer credit costs.
                 </p>
               </div>
@@ -501,106 +501,102 @@ function App() {
           </section>
 
           {/* VS Code Extension Section */}
-          <section id="vscode" className="max-w-[1400px] w-full mx-auto px-10 py-16 border-t border-white/5 bg-[#0e111a]/30">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-              
-              <div className="lg:col-span-5 flex flex-col gap-5 text-left">
-                <span className="text-xs text-[#8c52ff] font-mono tracking-widest uppercase font-semibold">Integrations</span>
-                <h3 className="text-2xl md:text-3xl font-extrabold tracking-tight">The native VS Code extension is active</h3>
-                <p className="text-sm text-[#94a3b8]">
-                  Since the entire engine runs under zero-dependency TypeScript modules, you can package the backend directly inside your VS Code extension. Trigger unit test code generation with a simple right-click inside your editor panel!
-                </p>
-                <div className="p-4 rounded-xl border border-white/5 bg-[#080a0f]/40 font-mono text-[11px] text-cyan-400/80">
-                  <span>$ ext install polytest.polytest-vscode</span>
-                </div>
+          <section id="vscode" className="saas-vscode-section">
+            <div className="vscode-left-text">
+              <span className="section-label">Integrations</span>
+              <h3 className="section-main-heading">The native VS Code extension is active</h3>
+              <p className="hero-description">
+                Since the entire engine runs under zero-dependency TypeScript modules, you can package the backend directly inside your VS Code extension. Trigger unit test code generation with a simple right-click inside your editor panel!
+              </p>
+              <div className="vscode-terminal-cmd">
+                <span>$ ext install polytest.polytest-vscode</span>
               </div>
+            </div>
 
-              <div className="lg:col-span-7 flex justify-center">
-                <div className="glass-panel p-5 w-full max-w-[580px] font-mono text-left text-xs bg-[#080a0f]/80">
-                  <div className="flex items-center gap-1.5 border-b border-white/5 pb-3.5 mb-4">
-                    <span className="w-3 h-3 rounded-full bg-rose-500" />
-                    <span className="w-3 h-3 rounded-full bg-amber-500" />
-                    <span className="w-3 h-3 rounded-full bg-emerald-500" />
-                    <span className="text-[10px] text-[#475569] ml-2">polytest-extension-development-host</span>
-                  </div>
-                  <p className="text-purple-400">⚡ PolyTest AI VS Code Extension active!</p>
-                  <p className="text-[#475569] mt-1.5">// Context menu hook registered: editor/context</p>
-                  <p className="text-white mt-1">Right-click menu: [PolyTest AI: Generate Unit Tests]</p>
-                  <p className="text-[#00f5ff] mt-2">✨ Generating PaymentService.test.ts (100% correct AST parsed)...</p>
+            <div className="vscode-right-mockup">
+              <div className="simulated-editor-window">
+                <div className="editor-window-header">
+                  <span className="dot-btn red" />
+                  <span className="dot-btn yellow" />
+                  <span className="dot-btn green" />
+                  <span className="editor-window-title">polytest-extension-development-host</span>
                 </div>
+                <p style={{ color: 'var(--accent-purple)' }}>⚡ PolyTest AI VS Code Extension active!</p>
+                <p style={{ color: 'var(--text-muted)', marginTop: '8px' }}>// Context menu hook registered: editor/context</p>
+                <p style={{ color: '#fff', marginTop: '6px' }}>Right-click menu: [PolyTest AI: Generate Unit Tests]</p>
+                <p style={{ color: 'var(--accent-cyan)', marginTop: '12px' }}>✨ Generating PaymentService.test.ts (100% correct AST parsed)...</p>
               </div>
-
             </div>
           </section>
 
           {/* Pricing Grid Section */}
-          <section id="pricing" className="max-w-[1400px] w-full mx-auto px-10 py-16 border-t border-white/5">
-            <div className="text-center flex flex-col items-center gap-3 mb-12">
-              <span className="text-xs text-cyan-400 font-mono tracking-widest uppercase font-semibold">Pricing</span>
-              <h3 className="text-2xl md:text-3xl font-bold">Flexible plans for any team</h3>
+          <section id="pricing" className="saas-pricing-section">
+            <div className="section-header-block">
+              <span className="section-label">Pricing</span>
+              <h3 className="section-main-heading">Flexible plans for any team</h3>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="pricing-grid-custom">
               
               {/* Plan 1 */}
-              <div className="glass-panel p-8 flex flex-col gap-6 text-left bg-[#0e111a]/20">
+              <div className="pricing-card-custom">
                 <div>
-                  <h4 className="text-lg font-bold text-white">Developer</h4>
-                  <p className="text-xs text-[#94a3b8] mt-1">For hobbyists and local extension compilers.</p>
+                  <h4 className="pricing-card-title">Developer</h4>
+                  <p className="pricing-card-sub">For hobbyists and local extension compilers.</p>
                 </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-extrabold text-white">$0</span>
-                  <span className="text-xs text-[#475569] font-semibold">/forever</span>
+                <div className="pricing-card-amount-block">
+                  <span className="pricing-amount">$0</span>
+                  <span className="pricing-period">/forever</span>
                 </div>
-                <ul className="text-xs text-[#94a3b8] flex flex-col gap-3 border-t border-white/5 pt-4">
-                  <li className="flex items-center gap-2">✓ Local Mock Generation</li>
-                  <li className="flex items-center gap-2">✓ Dynamic AST Parsers</li>
-                  <li className="flex items-center gap-2">✓ VS Code offline extension</li>
+                <ul className="pricing-features-list">
+                  <li>✓ Local Mock Generation</li>
+                  <li>✓ Dynamic AST Parsers</li>
+                  <li>✓ VS Code offline extension</li>
                 </ul>
-                <button onClick={() => setViewMode('console')} className="py-2.5 rounded-xl border border-white/10 text-xs font-bold hover:bg-white/5 text-white transition-all mt-auto text-center">
+                <button onClick={() => setViewMode('console')} className="secondary-outline-btn" style={{ marginTop: 'auto', justifyContent: 'center' }}>
                   Get Started
                 </button>
               </div>
 
               {/* Plan 2: Promoted SaaS Card */}
-              <div className="glass-panel p-8 flex flex-col gap-6 text-left border-cyan-500/30 bg-[#0e111a]/80 shadow-[0_0_30px_rgba(0,245,255,0.05)] relative">
-                <span className="absolute -top-3 right-6 px-3 py-0.5 text-[9px] font-bold text-[#040815] bg-cyan-400 rounded-full uppercase tracking-wider">
+              <div className="pricing-card-custom promoted">
+                <span className="pricing-popular-tag">
                   Popular
                 </span>
                 <div>
-                  <h4 className="text-lg font-bold text-white">Startup Pro</h4>
-                  <p className="text-xs text-[#94a3b8] mt-1">For fast-moving development teams.</p>
+                  <h4 className="pricing-card-title">Startup Pro</h4>
+                  <p className="pricing-card-sub">For fast-moving development teams.</p>
                 </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-extrabold text-white">$29</span>
-                  <span className="text-xs text-[#475569] font-semibold">/month</span>
+                <div className="pricing-card-amount-block">
+                  <span className="pricing-amount">$29</span>
+                  <span className="pricing-period">/month</span>
                 </div>
-                <ul className="text-xs text-[#94a3b8] flex flex-col gap-3 border-t border-white/5 pt-4">
-                  <li className="flex items-center gap-2 text-cyan-400">✓ Real OpenAI / Gemini API access</li>
-                  <li className="flex items-center gap-2">✓ Unlimited Cache Lookups</li>
-                  <li className="flex items-center gap-2">✓ Direct CLI subprocess runs</li>
-                  <li className="flex items-center gap-2">✓ Comprehensive validator modes</li>
+                <ul className="pricing-features-list">
+                  <li className="highlight-item">✓ Real OpenAI / Gemini API access</li>
+                  <li>✓ Unlimited Cache Lookups</li>
+                  <li>✓ Direct CLI subprocess runs</li>
+                  <li>✓ Comprehensive validator modes</li>
                 </ul>
-                <button onClick={() => setViewMode('console')} className="glowing-button py-3 text-center justify-center text-xs font-bold mt-auto">
+                <button onClick={() => setViewMode('console')} className="glowing-button" style={{ marginTop: 'auto' }}>
                   Launch Console
                 </button>
               </div>
 
               {/* Plan 3 */}
-              <div className="glass-panel p-8 flex flex-col gap-6 text-left bg-[#0e111a]/20">
+              <div className="pricing-card-custom">
                 <div>
-                  <h4 className="text-lg font-bold text-white">Enterprise</h4>
-                  <p className="text-xs text-[#94a3b8] mt-1">For scale-ups and high compliance pipelines.</p>
+                  <h4 className="pricing-card-title">Enterprise</h4>
+                  <p className="pricing-card-sub">For scale-ups and high compliance pipelines.</p>
                 </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-extrabold text-white">Custom</span>
+                <div className="pricing-card-amount-block">
+                  <span className="pricing-amount">Custom</span>
                 </div>
-                <ul className="text-xs text-[#94a3b8] flex flex-col gap-3 border-t border-white/5 pt-4">
-                  <li className="flex items-center gap-2">✓ Dedicated local LLM hosting</li>
-                  <li className="flex items-center gap-2">✓ Custom linter integrations</li>
-                  <li className="flex items-center gap-2">✓ SLA support channels</li>
+                <ul className="pricing-features-list">
+                  <li>✓ Dedicated local LLM hosting</li>
+                  <li>✓ Custom linter integrations</li>
+                  <li>✓ SLA support channels</li>
                 </ul>
-                <button onClick={() => setViewMode('console')} className="py-2.5 rounded-xl border border-white/10 text-xs font-bold hover:bg-white/5 text-white transition-all mt-auto text-center">
+                <button onClick={() => setViewMode('console')} className="secondary-outline-btn" style={{ marginTop: 'auto', justifyContent: 'center' }}>
                   Contact Sales
                 </button>
               </div>
@@ -609,9 +605,9 @@ function App() {
           </section>
 
           {/* SaaS Footer */}
-          <footer className="py-12 border-t border-white/5 bg-[#0e111a]/50 text-center text-xs text-[#475569] font-mono flex flex-col gap-1.5">
+          <footer className="saas-footer-custom">
             <p>© 2026 PolyTest AI REST Platform. Enterprise SaaS Edition.</p>
-            <p className="text-[10px] text-cyan-400/50 uppercase tracking-widest flex items-center justify-center gap-1.5">
+            <p className="footer-subtitle-custom">
               <Binary className="w-3.5 h-3.5" />
               TypeScript Core Stack Platform
             </p>
@@ -624,39 +620,47 @@ function App() {
       {/* VIEW MODE 2: INTERACTIVE DEVELOPER DASHBOARD CONSOLE */}
       {/* ========================================================================= */}
       {viewMode === 'console' && (
-        <div className="flex-1 flex flex-col animation-slideUp">
+        <div className="animation-slideUp">
           
           {/* Header HUD Navigation */}
-          <header className="sticky top-0 z-50 flex items-center justify-between px-8 py-3.5 border-b border-white/5 bg-[#0e111a]/85 backdrop-blur-md">
+          <header className="console-hud-bar">
             
             {/* Brand logo & workspace returns */}
-            <div className="flex items-center gap-8">
+            <div className="console-hud-left">
               <button 
                 onClick={() => setViewMode('landing')}
-                className="flex items-center gap-2 text-xs font-semibold text-[#94a3b8] hover:text-white transition-colors py-1.5 px-3 rounded-lg border border-white/5 bg-[#080a0f]/40"
+                className="secondary-outline-btn"
+                style={{ padding: '6px 12px', fontSize: '11px', borderRadius: '8px' }}
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 Return to Site
               </button>
 
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-cyan-400/20 to-purple-600/20 border border-cyan-400/35 shadow-[0_0_15px_rgba(0,245,255,0.1)]">
+              <div className="console-hud-brand">
+                <div className="brand-icon-box" style={{ padding: '6px' }}>
                   <Cpu className="w-4 h-4 text-cyan-400" />
                 </div>
                 <div>
-                  <h1 className="text-base font-bold tracking-tight bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">PolyTest AI</h1>
-                  <p className="text-[8px] text-[#475569] font-mono tracking-widest uppercase">Developer HUD Console</p>
+                  <h1 className="console-hud-brand-title bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">PolyTest AI</h1>
+                  <p className="console-hud-brand-subtitle">Developer HUD Console</p>
                 </div>
               </div>
+
+              {/* Project folder HUD dropdown */}
+              <select className="console-workspace-select">
+                <option value="quantum">quantum-core-v2</option>
+                <option value="alpha">alpha-parser-test</option>
+                <option value="legacy">legacy-service-node</option>
+              </select>
             </div>
 
             {/* Diagnostics HUD */}
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-3 px-4 py-1.5 rounded-xl border border-white/5 bg-[#080a0f]/50">
+            <div className="console-hud-right">
+              <div className="diagnostics-banner">
                 <Activity className="w-3.5 h-3.5 text-[#475569]" />
-                <div className="flex items-center gap-1.5">
-                  <span className={`w-2 h-2 rounded-full ${isBackendOnline ? 'bg-[#00f5ff] shadow-[0_0_10px_rgba(0,245,255,0.6)]' : 'bg-[#fbbf24] shadow-[0_0_10px_rgba(251,191,36,0.6)]'} animate-pulse`} />
-                  <span className={`text-[11px] font-semibold tracking-wider font-mono ${isBackendOnline ? 'text-[#00f5ff]' : 'text-[#fbbf24]'}`}>
+                <div className="flex-row-align" style={{ gap: '6px' }}>
+                  <span className={`nav-status-dot ${isBackendOnline ? 'active' : 'sandbox'}`} style={{ animation: 'pulseGlow 2s infinite' }} />
+                  <span style={{ color: isBackendOnline ? 'var(--accent-cyan)' : 'var(--accent-yellow)' }}>
                     {isBackendOnline ? 'ONLINE' : 'OFFLINE (SANDBOX)'}
                   </span>
                 </div>
@@ -664,61 +668,59 @@ function App() {
               
               <button 
                 onClick={checkHealth}
-                className="p-2 rounded-xl border border-white/5 bg-[#0e111a] hover:border-cyan-400/30 transition-all text-[#94a3b8] hover:text-white"
+                className="icon-button-hud"
                 title="Diagnose connection"
               >
                 <RefreshCw className="w-4 h-4" />
               </button>
 
-              <button className="relative p-2 rounded-xl border border-white/5 bg-[#0e111a] text-[#94a3b8] hover:text-white">
+              <button className="icon-button-hud" style={{ position: 'relative' }}>
                 <Bell className="w-4 h-4" />
-                <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                <span style={{ position: 'absolute', top: '4px', right: '4px', width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-cyan)' }} />
               </button>
 
-              <div className="h-8 w-px bg-white/5" />
+              <div style={{ height: '24px', width: '1px', background: 'rgba(255,255,255,0.1)' }} />
 
-              <div className="flex items-center gap-3">
-                <img 
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop" 
-                  alt="Developer Avatar" 
-                  className="w-8 h-8 rounded-full border border-white/10 object-cover"
-                />
-              </div>
+              <img 
+                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop" 
+                alt="Developer Avatar" 
+                className="avatar-hud"
+              />
             </div>
           </header>
 
           {/* Main Dashboard HUD Content */}
-          <main className="flex-1 grid grid-cols-12 gap-6 p-6 max-w-[1700px] w-full mx-auto">
+          <main className="console-workspace-grid">
             
             {/* Left Side: Directory folders */}
-            <section className="col-span-12 lg:col-span-3 glass-panel p-5 flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold tracking-wider text-[#94a3b8] uppercase font-mono flex items-center gap-2">
+            <section className="console-sidebar glass-panel" style={{ padding: '20px' }}>
+              <div className="flex-row-align" style={{ justifyContent: 'space-between' }}>
+                <span className="tree-heading">
                   <FolderOpen className="w-4 h-4 text-cyan-400" />
                   Folders Tree
                 </span>
                 <button 
                   onClick={triggerAutoDetect}
                   disabled={isScanning}
-                  className="text-[11px] text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1.5"
+                  style={{ fontSize: '11px', color: 'var(--accent-cyan)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}
                 >
                   <RefreshCw className={`w-3 h-3 ${isScanning ? 'animate-spin' : ''}`} />
                   Rescan
                 </button>
               </div>
 
-              <div className="flex-1 flex flex-col gap-1 overflow-y-auto max-h-[60vh] pr-1">
-                <div className="flex items-center gap-2 py-1 px-2 text-xs font-semibold text-[#94a3b8]">
+              <div className="folders-tree-scroll">
+                <div className="folder-item-custom" style={{ paddingLeft: '8px' }}>
                   <Folder className="w-4 h-4 text-purple-400 fill-current" />
                   <span>quantum-core-v2</span>
                 </div>
                 
-                <div className="flex items-center gap-2 py-1 pl-6 px-2 text-xs font-semibold text-[#94a3b8]">
+                <div className="folder-item-custom" style={{ paddingLeft: '24px' }}>
                   <Folder className="w-4 h-4 text-purple-400 fill-current" />
                   <span>src</span>
                 </div>
 
-                <div className="flex flex-col gap-0.5 pl-10 border-l border-white/5 ml-8 mt-1 mb-2">
+                <div className="flex-col-align" style={{ paddingLeft: '40px', borderLeft: '1px solid rgba(255,255,255,0.05)', marginLeft: '32px', margin: '4px 0 8px 32px' }}>
                   {files.map((file, idx) => {
                     const isSelected = selectedFile?.file_path === file.file_path;
                     const baseName = file.file_path.split('/').pop() || '';
@@ -726,62 +728,60 @@ function App() {
                       <div
                         key={idx}
                         onClick={() => handleFileSelect(file)}
-                        className={`folder-item flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-xs font-medium ${
-                          isSelected 
-                            ? 'bg-cyan-500/5 text-cyan-400 border border-cyan-500/10' 
-                            : 'text-[#94a3b8]'
-                        }`}
+                        className={`folder-item-custom ${isSelected ? 'active' : ''}`}
+                        style={{ padding: '6px 10px' }}
                       >
                         <FileCode className="w-3.5 h-3.5" style={{ color: getLanguageColor(file.language) }} />
-                        <span className="truncate">{baseName}</span>
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{baseName}</span>
                       </div>
                     );
                   })}
                 </div>
               </div>
 
-              <div className="mt-auto p-4 rounded-xl border border-white/5 bg-[#080a0f]/40 text-[11px]">
-                <span className="text-[#475569] font-mono block mb-0.5">LOCAL SOURCE ROOT</span>
-                <span className="font-mono text-[#94a3b8] truncate block" title={projectRoot}>{projectRoot}</span>
+              <div className="source-root-banner">
+                <span style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '2px', fontWeight: 600 }}>LOCAL SOURCE ROOT</span>
+                <span style={{ color: 'var(--text-secondary)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={projectRoot}>{projectRoot}</span>
               </div>
             </section>
 
             {/* Center: AST workspace */}
-            <section className="col-span-12 lg:col-span-6 flex flex-col gap-6">
+            <section className="console-center-workspace">
               
-              <div className="flex items-center gap-2 border-b border-white/5">
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {selectedFile && (
-                  <div className="flex items-center gap-2.5 px-5 py-3 text-xs font-semibold text-white bg-[#0e111a] border-t border-x border-white/5 rounded-t-xl">
+                  <div className="workspace-active-tab">
                     <FileCode className="w-4 h-4" style={{ color: getLanguageColor(selectedFile.language) }} />
                     <span>{selectedFile.file_path.split('/').pop()}</span>
-                    <span className="text-[10px] text-[#475569] hover:text-white cursor-pointer ml-2">×</span>
+                    <span style={{ color: 'var(--text-muted)', cursor: 'pointer', marginLeft: '8px' }}>×</span>
                   </div>
                 )}
+                <div className="tab-line-border" />
               </div>
 
-              <div className="flex-1 glass-panel p-6 flex flex-col gap-6 min-h-[500px]">
-                <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                  <div>
-                    <span className="text-[10px] text-[#475569] font-mono uppercase tracking-wider">Declaring Workspace Code</span>
-                    <h2 className="text-sm font-semibold text-white font-mono mt-0.5">
+              <div className="workspace-canvas">
+                <div className="canvas-header">
+                  <div style={{ textAlign: 'left' }}>
+                    <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Declaring Workspace Code</span>
+                    <h2 style={{ fontSize: '14px', fontWeight: 600, fontFamily: 'var(--font-mono)', color: '#fff', marginTop: '4px' }}>
                       class {parsedStructure?.classes?.[0]?.name || 'SourceModule'}
                     </h2>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-mono bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded">
+                  <div>
+                    <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', background: 'rgba(0, 245, 255, 0.08)', border: '1px solid rgba(0,245,255,0.15)', color: 'var(--accent-cyan)', padding: '2px 8px', borderRadius: '4px' }}>
                       Complexity: {parsedStructure?.complexity || 'Low'}
                     </span>
                   </div>
                 </div>
 
                 {isLoadingAnalysis ? (
-                  <div className="flex-1 flex flex-col items-center justify-center gap-3">
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', flex: 1 }}>
                     <RefreshCw className="w-8 h-8 text-cyan-400 animate-spin" />
-                    <p className="text-xs text-[#94a3b8] font-mono">Statically building method mapping profiles...</p>
+                    <p style={{ fontSize: '12px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>Statically building method mapping profiles...</p>
                   </div>
                 ) : parsedStructure ? (
-                  <div className="flex-1 flex flex-col gap-4 overflow-y-auto max-h-[55vh] pr-1">
-                    <p className="text-xs text-[#94a3b8] mb-1">
+                  <div className="ast-cards-container">
+                    <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px', textAlign: 'left' }}>
                       💡 Select which code blocks to target in your generated AI unit test suite:
                     </p>
 
@@ -792,25 +792,23 @@ function App() {
                           <div
                             key={idx}
                             onClick={() => toggleMethod(method)}
-                            className={`ast-card flex items-center justify-between ${isSelected ? 'selected' : ''}`}
+                            className={`ast-card-custom ${isSelected ? 'selected' : ''}`}
                           >
-                            <div className="flex items-center gap-4 text-left">
-                              <div className={`p-2 rounded-lg border ${isSelected ? 'border-cyan-500/30 bg-cyan-500/10' : 'border-white/5 bg-[#080a0f]'}`}>
+                            <div className="ast-card-left">
+                              <div className={`ast-card-icon-box ${isSelected ? 'active' : ''}`}>
                                 <Code className={`w-4 h-4 ${isSelected ? 'text-cyan-400' : 'text-[#475569]'}`} />
                               </div>
                               <div>
-                                <p className="text-sm font-semibold text-white font-mono">
-                                  {method}<span className="text-[#475569]">()</span>
+                                <p style={{ fontSize: '13px', fontWeight: 600, color: '#fff', fontFamily: 'var(--font-mono)' }}>
+                                  {method}<span style={{ color: 'var(--text-muted)' }}>()</span>
                                 </p>
-                                <span className="text-[10px] text-[#475569] font-mono leading-none">
+                                <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
                                   {isSelected ? 'Targeted for testing' : 'Excluded from prompts'}
                                 </span>
                               </div>
                             </div>
 
-                            <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${
-                              isSelected ? 'border-cyan-400 bg-cyan-400 text-[#040815]' : 'border-white/10'
-                            }`}>
+                            <div className={`ast-checkbox-box ${isSelected ? 'checked' : ''}`}>
                               {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                             </div>
                           </div>
@@ -824,25 +822,23 @@ function App() {
                         <div
                           key={idx}
                           onClick={() => toggleMethod(func)}
-                          className={`ast-card flex items-center justify-between ${isSelected ? 'selected' : ''}`}
+                          className={`ast-card-custom ${isSelected ? 'selected' : ''}`}
                         >
-                          <div className="flex items-center gap-4 text-left">
-                            <div className={`p-2 rounded-lg border ${isSelected ? 'border-cyan-500/30 bg-cyan-500/10' : 'border-white/5 bg-[#080a0f]'}`}>
+                          <div className="ast-card-left">
+                            <div className={`ast-card-icon-box ${isSelected ? 'active' : ''}`}>
                               <Code className={`w-4 h-4 ${isSelected ? 'text-cyan-400' : 'text-[#475569]'}`} />
                             </div>
                             <div>
-                              <p className="text-sm font-semibold text-white font-mono">
-                                {func}<span className="text-[#475569]">()</span>
+                              <p style={{ fontSize: '13px', fontWeight: 600, color: '#fff', fontFamily: 'var(--font-mono)' }}>
+                                {func}<span style={{ color: 'var(--text-muted)' }}>()</span>
                               </p>
-                              <span className="text-[10px] text-[#475569] font-mono leading-none">
+                              <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
                                 {isSelected ? 'Targeted for testing' : 'Excluded'}
                               </span>
                             </div>
                           </div>
 
-                          <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${
-                            isSelected ? 'border-cyan-400 bg-cyan-400 text-[#040815]' : 'border-white/10'
-                          }`}>
+                          <div className={`ast-checkbox-box ${isSelected ? 'checked' : ''}`}>
                             {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                           </div>
                         </div>
@@ -850,24 +846,24 @@ function App() {
                     })}
                   </div>
                 ) : (
-                  <div className="flex-1 flex items-center justify-center">
-                    <p className="text-xs text-[#475569] italic font-mono">Select a file from folder panel to inspect parsed symbols.</p>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic', fontFamily: 'var(--font-mono)' }}>Select a file from folder panel to inspect parsed symbols.</p>
                   </div>
                 )}
               </div>
             </section>
 
-            {/* Right Side: Circular syntax validation radial gauge */}
-            <section className="col-span-12 lg:col-span-3 flex flex-col gap-6">
+            {/* Right Side: Settings & Gauge panel */}
+            <section className="console-controls-panel">
               
-              <div className="glass-panel p-5 flex flex-col gap-4">
-                <span className="text-xs font-bold tracking-wider text-[#94a3b8] uppercase font-mono flex items-center gap-2">
+              <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <span className="tree-heading" style={{ padding: 0 }}>
                   <Settings className="w-4 h-4 text-purple-400" />
                   Test Generation
                 </span>
 
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold text-[#475569] uppercase tracking-wider font-mono">LLM Provider</label>
+                <div className="settings-group">
+                  <label style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: 'var(--font-mono)', textAlign: 'left' }}>LLM Provider</label>
                   <select 
                     value={selectedProvider} 
                     onChange={(e) => {
@@ -876,7 +872,8 @@ function App() {
                       else if (e.target.value === 'openai') setSelectedModel('gpt-4o');
                       else if (e.target.value === 'gemini') setSelectedModel('gemini-1.5-flash');
                     }}
-                    className="form-input form-select text-xs font-semibold py-2 px-3"
+                    className="form-input form-select"
+                    style={{ fontSize: '12px', padding: '10px 14px' }}
                   >
                     <option value="mock">Offline Mock Engine</option>
                     <option value="gemini">Google Gemini API</option>
@@ -884,93 +881,88 @@ function App() {
                   </select>
                 </div>
 
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold text-[#475569] uppercase tracking-wider font-mono">Model</label>
+                <div className="settings-group">
+                  <label style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: 'var(--font-mono)', textAlign: 'left' }}>Model</label>
                   <input 
                     type="text" 
                     value={selectedModel} 
                     onChange={(e) => setSelectedModel(e.target.value)}
-                    className="form-input text-xs py-2 px-3"
+                    className="form-input"
+                    style={{ fontSize: '12px', padding: '10px 14px' }}
                   />
                 </div>
 
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold text-[#475569] uppercase tracking-wider font-mono">Custom Framework</label>
+                <div className="settings-group">
+                  <label style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: 'var(--font-mono)', textAlign: 'left' }}>Custom Framework</label>
                   <input 
                     type="text" 
                     value={customFramework} 
                     onChange={(e) => setCustomFramework(e.target.value)}
-                    className="form-input text-xs py-2 px-3"
+                    className="form-input"
+                    style={{ fontSize: '12px', padding: '10px 14px' }}
                     placeholder="Auto-detect framework"
                   />
                 </div>
 
-                <div className="flex items-center justify-between text-xs py-1">
-                  <span className="font-mono text-[#94a3b8]">Use Caching</span>
+                <div className="setting-row-flex">
+                  <span style={{ color: 'var(--text-secondary)' }}>Use Caching</span>
                   <input 
                     type="checkbox" 
                     checked={useCache} 
                     onChange={(e) => setUseCache(e.target.checked)} 
-                    className="accent-cyan-400" 
+                    className="checkbox-custom" 
                   />
                 </div>
 
-                <div className="flex items-center justify-between text-xs py-1">
-                  <span className="font-mono text-[#94a3b8]">Auto-Execute</span>
+                <div className="setting-row-flex">
+                  <span style={{ color: 'var(--text-secondary)' }}>Auto-Execute</span>
                   <input 
                     type="checkbox" 
                     checked={runImmediately} 
                     onChange={(e) => setRunImmediately(e.target.checked)} 
-                    className="accent-cyan-400" 
+                    className="checkbox-custom" 
                   />
                 </div>
 
                 <button
                   onClick={handleGenerate}
                   disabled={isGenerating || !selectedFile || selectedMethods.length === 0}
-                  className="glowing-button w-full py-3.5 text-center justify-center font-bold text-sm mt-2"
+                  className="glowing-button"
+                  style={{ width: '100%', padding: '14px', fontSize: '13px', marginTop: '8px' }}
                 >
                   {isGenerating ? (
                     <>
-                      <RefreshCw className="w-4 h-4 animate-spin text-[#040815]" />
+                      <RefreshCw className="w-4 h-4 animate-spin" />
                       Compiling...
                     </>
                   ) : (
                     <>
-                      <Play className="w-4 h-4 fill-current text-[#040815]" />
+                      <Play className="w-4 h-4 fill-current" />
                       Generate Tests
                     </>
                   )}
                 </button>
 
-                <div className="flex flex-col gap-1.5 mt-1">
-                  <label className="text-[10px] font-bold text-[#475569] uppercase tracking-wider font-mono">Selected Methods</label>
-                  <div className="p-3 rounded-xl bg-[#080a0f]/50 border border-white/5 flex items-center justify-between text-xs text-white">
-                    <span className="font-mono text-[#94a3b8]">Targeting:</span>
-                    <span className="font-semibold">{selectedMethods.length} Methods</span>
+                <div className="settings-group" style={{ marginTop: '4px' }}>
+                  <label style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: 'var(--font-mono)', textAlign: 'left' }}>Selected Methods</label>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', borderRadius: '10px', background: 'rgba(8,10,15,0.5)', border: '1px solid rgba(255,255,255,0.05)', fontSize: '12px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>Targeting:</span>
+                    <span style={{ fontWeight: 600, color: '#fff' }}>{selectedMethods.length} Methods</span>
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-bold text-[#475569] uppercase tracking-wider font-mono">Mode</label>
-                  <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-[#080a0f]/50 border border-white/5">
+                <div className="settings-group">
+                  <label style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: 'var(--font-mono)', textAlign: 'left' }}>Mode</label>
+                  <div className="mode-toggle-grid">
                     <button
                       onClick={() => setGenerationMode('Comprehensive')}
-                      className={`py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                        generationMode === 'Comprehensive' 
-                          ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' 
-                          : 'text-[#94a3b8] hover:text-white'
-                      }`}
+                      className={`mode-toggle-btn ${generationMode === 'Comprehensive' ? 'active' : ''}`}
                     >
                       Comprehensive
                     </button>
                     <button
                       onClick={() => setGenerationMode('Fast')}
-                      className={`py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                        generationMode === 'Fast' 
-                          ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' 
-                          : 'text-[#94a3b8] hover:text-white'
-                      }`}
+                      className={`mode-toggle-btn ${generationMode === 'Fast' ? 'active' : ''}`}
                     >
                       Fast
                     </button>
@@ -978,15 +970,15 @@ function App() {
                 </div>
               </div>
 
-              {/* SVG Health Gauge */}
-              <div className="glass-panel p-5 flex flex-col items-center gap-4 text-center">
-                <span className="text-xs font-bold tracking-wider text-[#94a3b8] uppercase font-mono flex items-center gap-2 self-start">
-                  <CheckCircle className="w-4 h-4 text-[#00f5ff]" />
+              {/* Health Gauge Panel */}
+              <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+                <span className="tree-heading" style={{ padding: 0, alignSelf: 'flex-start' }}>
+                  <CheckCircle className="w-4 h-4 text-cyan-400" />
                   Syntax Validator Health
                 </span>
 
-                <div className="relative w-36 h-36 flex items-center justify-center mt-2">
-                  <svg className="w-full h-full transform -rotate-90">
+                <div style={{ position: 'relative', width: '144px', height: '144px', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center' }}>
+                  <svg style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
                     <circle cx="72" cy="72" r={radius} stroke="rgba(255, 255, 255, 0.02)" strokeWidth="8" fill="transparent" />
                     <circle 
                       cx="72" 
@@ -1003,46 +995,44 @@ function App() {
                     />
                   </svg>
 
-                  <div className="absolute flex flex-col items-center">
-                    <span className="text-3xl font-extrabold tracking-tight text-white">{syntaxCorrectness}%</span>
-                    <span className="text-[10px] text-cyan-400 font-mono tracking-wider uppercase font-semibold">Healthy</span>
+                  <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <span style={{ fontSize: '30px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>{syntaxCorrectness}%</span>
+                    <span style={{ fontSize: '9px', color: 'var(--accent-cyan)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', fontFamily: 'var(--font-mono)' }}>Healthy</span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 w-full mt-2 pt-4 border-t border-white/5 text-xs">
-                  <div className="text-left">
-                    <span className="text-[#475569] font-mono block">Validated Files</span>
-                    <span className="font-mono text-white text-sm font-semibold">{validatedCount}</span>
+                <div className="stats-grid-double">
+                  <div style={{ textAlign: 'left' }}>
+                    <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', display: 'block', fontSize: '11px' }}>Validated Files</span>
+                    <span style={{ color: '#fff', fontSize: '14px', fontWeight: 600, fontFamily: 'var(--font-mono)', marginTop: '2px', display: 'block' }}>{validatedCount}</span>
                   </div>
-                  <div className="text-left border-l border-white/5 pl-4">
-                    <span className="text-[#475569] font-mono block">Issues</span>
-                    <span className={`font-mono text-sm font-semibold ${issueCount > 0 ? 'text-rose-400' : 'text-[#475569]'}`}>{issueCount}</span>
+                  <div style={{ textAlign: 'left', borderLeft: '1px solid rgba(255,255,255,0.05)', paddingLeft: '16px' }}>
+                    <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', display: 'block', fontSize: '11px' }}>Issues</span>
+                    <span style={{ color: issueCount > 0 ? 'var(--accent-red)' : 'var(--text-muted)', fontSize: '14px', fontWeight: 600, fontFamily: 'var(--font-mono)', marginTop: '2px', display: 'block' }}>{issueCount}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Colorized Subprocess Execution Console Box */}
-              <div className="glass-panel p-5 flex flex-col gap-3 flex-1 min-h-[220px]">
-                <div className="flex items-center justify-between border-b border-white/5 pb-2">
-                  <span className="text-xs font-bold tracking-wider text-[#94a3b8] uppercase font-mono flex items-center gap-2">
-                    <Terminal className="w-4 h-4 text-cyan-400" />
-                    Execution Streams
-                  </span>
-                </div>
+              {/* Subprocess console Panel */}
+              <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <span className="tree-heading" style={{ padding: 0 }}>
+                  <Terminal className="w-4 h-4 text-cyan-400" />
+                  Execution Streams
+                </span>
 
-                <div className="flex-1 p-3.5 rounded-xl bg-[#06080c] border border-white/5 font-mono text-[10px] overflow-y-auto max-h-[160px] flex flex-col gap-1 text-left select-text scrollbar-thin">
+                <div className="terminal-block-logs">
                   {terminalLogs.map((log, idx) => (
-                    <div key={idx} className="leading-relaxed">
+                    <div key={idx} style={{ lineHeight: '1.6' }}>
                       {log.includes('❌') ? (
-                        <span className="text-rose-400">{log}</span>
+                        <span style={{ color: 'var(--accent-red)' }}>{log}</span>
                       ) : log.includes('✅') || log.includes('✨') || log.includes('🟢') ? (
-                        <span className="text-[#00f5ff]">{log}</span>
+                        <span style={{ color: 'var(--accent-cyan)' }}>{log}</span>
                       ) : log.includes('🚀') || log.includes('🌐') ? (
-                        <span className="text-purple-400">{log}</span>
+                        <span style={{ color: 'var(--accent-purple)' }}>{log}</span>
                       ) : log.includes('📊') ? (
-                        <span className="text-cyan-400 font-bold">{log}</span>
+                        <span style={{ color: 'var(--accent-cyan)', fontWeight: 700 }}>{log}</span>
                       ) : (
-                        <span className="text-[#94a3b8]">{log}</span>
+                        <span style={{ color: 'var(--text-secondary)' }}>{log}</span>
                       )}
                     </div>
                   ))}
@@ -1054,9 +1044,9 @@ function App() {
           </main>
 
           {/* Footer */}
-          <footer className="py-6 border-t border-white/5 bg-[#0e111a]/50 text-center text-xs text-[#475569] font-mono flex flex-col gap-1.5">
+          <footer className="saas-footer-custom">
             <p>© 2026 PolyTest AI REST Platform. Enterprise Edition.</p>
-            <p className="text-[10px] text-cyan-400/50 uppercase tracking-widest flex items-center justify-center gap-1.5">
+            <p className="footer-subtitle-custom">
               <Binary className="w-3.5 h-3.5" />
               TypeScript Backend + React Frontend Architecture
             </p>
