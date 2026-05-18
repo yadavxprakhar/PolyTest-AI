@@ -1,109 +1,133 @@
 # PolyTest AI 🚀
 ### *Universal Multi-Language AI Static Code Analyzer & Unit Test Generator*
 
-**PolyTest AI** is a modular, high-speed, and intelligent test suite generator that analyzes source code across multiple programming languages and automatically outputs comprehensive, framework-specific unit test suites using Large Language Models.
-
-Unlike simple single-language code templates, PolyTest AI parses raw source files, extracts class/method structural signatures, resolves complexity heuristics, queries a suite of SDK-free LLM API providers, and compiles output files through a **Multi-Language Syntax Validator** to guarantee 100% runnable, error-free tests before writing them to disk.
+**PolyTest AI** is an advanced, high-speed, and intelligent static analysis dashboard and CLI platform. It recursively parses code constructs, models abstract syntax trees (ASTs), executes non-destructive Drycompile syntax linting, streams sandboxed subprocess telemetry, and generates fully functional unit test suites through secure, offline prompt caching.
 
 ---
 
-## 🎨 Architectural Design
+## 🎨 System Architecture
 
 ```mermaid
 graph TD
-    CLI[cli/main.py] --> Config[core/config/config_manager.py]
-    CLI --> Generator[core/generator/test_generator.py]
-    
-    Generator --> Detector[core/analyzer/detector.py]
-    Generator --> Factory[core/analyzer/parser_factory.py]
-    
-    Factory --> PyParser[core/analyzer/parsers/python_parser.py]
-    Factory --> JSParser[core/analyzer/parsers/javascript_parser.py]
-    Factory --> CppParser[core/analyzer/parsers/cpp_parser.py]
-    Factory --> JavaParser[core/analyzer/parsers/java_parser.py]
-    Factory --> GoParser[core/analyzer/parsers/go_parser.py]
-    Factory --> CSharpParser[core/analyzer/parsers/csharp_parser.py]
-    
-    Generator --> Context[core/context/context_builder.py]
-    Generator --> Prompt[core/llm/prompt_builder.py]
-    
-    Generator --> LLM[core/llm/llm_client.py]
-    LLM --> MockProvider[core/llm/providers/mock_provider.py]
-    LLM --> OpenAI[core/llm/providers/openai_provider.py]
-    LLM --> Gemini[core/llm/providers/gemini_provider.py]
-    LLM --> Anthropic[core/llm/providers/anthropic_provider.py]
-    LLM --> Ollama[core/llm/providers/ollama_provider.py]
-    
-    Generator --> Validator[core/validator/syntax_validator.py]
-    Validator --> Output[tests/ generated test files]
+    CLI[cli/main.py (Python CLI)] --> CoreConfig[core/config/config_manager.py]
+    CLI --> CoreGen[core/generator/test_generator.py]
+
+    subgraph "REST Engine Core (Node.js & TypeScript)"
+        API[backend/src/index.ts] --> Express[Express REST Controllers]
+        Express --> NodeParser[backend/src/core/parser.ts]
+        Express --> NodeGen[backend/src/core/generator.ts]
+        Express --> NodeRunner[backend/src/core/runner.ts]
+        NodeGen --> CacheDir[cache/ MD5 Cache Logs]
+    end
+
+    subgraph "Interactive Developer Dashboard (React & Framer Motion)"
+        Dashboard[frontend/src/App.tsx] --> Explorer[Interactive Files Explorer & Add File Wizard]
+        Dashboard --> ASTInspect[Holographic AST Class Parser]
+        Dashboard --> LinterHUD[Drycompile Warnings Registry]
+        Dashboard --> Telemetry[Subrunner Sandboxed PID Telemetry]
+        Dashboard --> CacheHUD[MD5 Cache Hit Indicator]
+        Dashboard --> ManualPage[System Manual Overlay subpage]
+    end
+
+    Dashboard -- "JSON REST API calls" --> API
 ```
 
 ---
 
-## ✨ Core Features
+## ✨ Features & Capabilities
 
-*   🌍 **7-Language Analyzer Engine**: Out-of-the-box structural code parser support for **Python, JavaScript, TypeScript, C++, Java, Go, and C#**.
-*   ⚡ **SDK-Free LLM Clients**: Connects directly to **OpenAI, Google Gemini, Anthropic Claude, and local Ollama servers** via HTTP `requests`, keeping the codebase secure from package dependency deprecations.
-*   🛡️ **Multi-Language Syntax Validator**: Leverages local compilers and syntax linters (`javac`, `go tool compile`, `g++ -fsyntax-only`, `node --check`, `csc`) to verify test suite correctness before saving.
-*   💾 **Environment-Resilient Warnings**: Automatically detects missing host-specific libraries (e.g. `gtest/gtest.h` or `mockito` packages) and logs them as helpful warnings rather than throwing hard compiler compilation failures.
-*   📦 **Smart Local Caching**: Saves generated test suites under `cache/*.log` to bypass duplicate LLM API charges for unchanged code.
-*   🔄 **Directory Batching**: Automated directory walking to scan, parse, generate, and validate tests recursively across entire folders.
-*   💎 **Premium Terminal Interface**: Beautiful command parser powered by the `rich` library with custom panels, progress spinners, colorized syntax tables, and detailed logs.
+### 🌟 1. Holographic AST Class Parser
+*   **Double-Column Code Explorer**: Spring-animated workspace displaying imports, nested classes, static variables, and standalone functions.
+*   **Real-time Token Inspector**: Click on any class method to dynamically verify argument types, accessibility scopes (`PUBLIC`/`PRIVATE`), async/promise checks, and generate mock recommendations.
+
+### 🛡️ 2. Drycompile Linter Workspace
+*   **Isolated Compilation Dryruns**: Runs non-destructive syntax verification via host compilers (`node --check`, `javac -Xlint`, `gcc -fsyntax-only`).
+*   **Warning & Advisory Registry**: Color-coded linter logs mapping target lines, severity levels, issue descriptions, and specific code **remedies**.
+
+### ⏱️ 3. Cryptographic Prompt Cache (MD5)
+*   **Instant Local Recovers**: Computes `MD5` checksum signatures derived from prompts and source files. If files are unchanged, it pulls from cache logs in **15ms**, avoiding duplicate LLM API tokens charges.
+*   **Visual Status Indicators**: Watch the real-time cache toggle state transition from `DISABLED` to a glowing `ACTIVE (HIT)` displaying computed hash keys.
+
+### 📊 4. Subprocess Subrunner Telemetry
+*   **Real-time Process Tracking**: Streams sandboxed process IDs (PIDs), CPU cycle graphs, and memory load metrics.
+*   **Segmented Output Channels**: Swap between **Execution Logs** (live standard streams), **Run Metrics** (model settings and dynamic coverage progress target bar), and **Diagnostics** lists.
+
+### 📂 5. Interactive Explorer & Add File Wizard
+*   **Custom Sandbox Registration**: A glassmorphic creation dialog let developers inject custom source files (`+ Add File`), choose languages, assign test frameworks, and verify AST parsing immediately in state.
 
 ---
 
 ## 📂 Directory Layout
 
-*   `core/analyzer/`: Dynamic static analysers that extract namespaces, class layouts, dependencies, parameters, and complexity scores.
-*   `core/context/`: Context aggregators that prepare code metadata for the LLM prompt.
-*   `core/llm/`: Unified clients routing prompts to API providers and parsing markdown code envelopes.
-*   `core/validator/`: Non-destructive compiler checks that run syntax and code safety verification.
-*   `core/config/`: Local YAML configuration manager (`polytest.yaml`).
-*   `cli/`: CLI dashboard commands (`init`, `detect`, `analyze`, `generate`).
-*   `src/`: Example multi-language codebase (`calculator.py`, `user_service.js`, `auth.h`).
-*   `tests/`: Generated test output suites.
+```text
+├── app/                  # Host desktop wrappers
+├── backend/              # Node.js + TypeScript REST API Server
+│   ├── src/index.ts      # Express server routes
+│   └── src/core/         # Language detectors, parsers, test generators, runners
+├── cache/                # Encrypted MD5 local cache logs
+├── cli/                  # High-performance CLI dashboard (Python)
+├── core/                 # Core analysis modules (Python backend)
+├── frontend/             # Premium React + Vite Developer Dashboard
+│   ├── src/App.tsx       # Core dashboard workspace component
+│   └── src/index.css     # Premium styling layers
+├── prompt/               # Custom system LLM prompt models
+├── report/               # Coverage audit HTML dashboards
+└── tests/                # Generated framework unit test files
+```
 
 ---
 
 ## 🚀 Getting Started
 
-### 1. Installation & Environment Activation
-Set up your local directory and activate the virtual environment:
+### Tier 1: Running the Interactive Web Dashboard Console
+
+#### 1. Start the REST API Engine (Node.js & TypeScript)
+Configure parameters and launch the compilation server:
 ```bash
-git clone https://github.com/yadavxprakhar/PolyTest-AI.git
-cd PolyTest-AI
+cd backend
+npm install
+npm run build
+npm run dev
+```
+*API engine boots up at:* `http://localhost:8000`
+
+#### 2. Launch the Developer Dashboard Frontend
+Launch the premium web workspace:
+```bash
+cd ../frontend
+npm install
+npm run dev
+```
+*Dashboard console compiles and opens at:* `http://localhost:5173`
+
+---
+
+### Tier 2: Running the Python CLI Dashboard
+
+#### 1. Setup Virtual Environment
+```bash
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2. Initialize Configuration
-Generates a local `polytest.yaml` settings schema:
+#### 2. Initialize YAML Configuration
 ```bash
 python3 -m cli.main init
 ```
 
-### 3. Scan & Auto-Detect Source Files
-Recursively search folders, locate source code files, and auto-configure testing frameworks:
-```bash
-python3 -m cli.main detect
-```
-
-### 4. Deep Structural Analysis
-Perform local static structural parsing to review class declarations and method signatures:
+#### 3. Deep Static AST Analysis
 ```bash
 python3 -m cli.main analyze src/calculator.py
-python3 -m cli.main analyze src/user_service.js
 ```
 
-### 5. Generate Unit Tests Offline (Dry-Run Mode)
-Instantly generate, compile, and validate test suites using PolyTest AI's high-speed offline Mock engine:
+#### 4. Sandbox Test Generation (Dryrun Offline)
 ```bash
 python3 -m cli.main generate src/ --mock --no-cache
 ```
 
-### 6. Live AI API Generation (OpenAI / Gemini / Anthropic / Ollama)
-Enter your API credentials in `polytest.yaml` or export them to your shell (e.g. `export GEMINI_API_KEY="..."`), then run:
+#### 5. Live AI API Suite compiles
 ```bash
+export GEMINI_API_KEY="your_api_key_here"
 python3 -m cli.main generate src/calculator.py --provider gemini --model gemini-1.5-flash
 ```
 
@@ -111,28 +135,18 @@ python3 -m cli.main generate src/calculator.py --provider gemini --model gemini-
 
 ## 🧪 Supported Test Frameworks
 
-| Language | Default Framework | Supported Frameworks | Validator Tool |
+| Language | Default Framework | Supported Frameworks | Linter Validator |
 | :--- | :---: | :---: | :--- |
-| **Python** | `pytest` | `pytest`, `unittest` | Native Python AST (`compile`) |
-| **JavaScript** | `Jest` | `Jest`, `Mocha` | Node linter (`node --check`) |
-| **TypeScript** | `Jest` | `Jest`, `Mocha` | Node linter (`node --check`) |
-| **Java** | `JUnit 5` | `JUnit 5`, `JUnit 4` | Java Compiler (`javac`) |
-| **C++** | `Google Test` | `Google Test` | C++ Compiler (`g++` / `clang++`) |
-| **Go** | `testing` | `testing` | Go toolchain (`go tool compile`) |
-| **C#** | `xUnit` | `xUnit` | Mono / Roslyn Compiler (`csc`) |
-
----
-
-## 🤝 Contributing
-
-1. Fork the repository.
-2. Create a feature branch: `git checkout -b feature/amazing-feature`.
-3. Commit your changes: `git commit -m "feat: Add amazing feature"`.
-4. Push to the branch: `git push origin feature/amazing-feature`.
-5. Open a Pull Request.
+| **TypeScript** | `Jest` | `Jest`, `Mocha` | Node check (`node --check`) |
+| **JavaScript** | `Jest` | `Jest`, `Mocha` | Node check (`node --check`) |
+| **Python** | `pytest` | `pytest`, `unittest` | Python AST compilation |
+| **Java** | `JUnit 5` | `JUnit 5`, `JUnit 4` | JDK compiler (`javac`) |
+| **C++** | `Google Test` | `Google Test` | C++ compilation (`g++` / `clang++`) |
+| **Go** | `testing` | `testing` | Go tool compiler |
+| **C#** | `xUnit` | `xUnit` | Roslyn compiler (`csc`) |
 
 ---
 
 ## 📜 License
 
-Distributed under the MIT License. See [LICENSE](LICENSE) for more details.
+Distributed under the MIT License. See [LICENSE](LICENSE) for details.
