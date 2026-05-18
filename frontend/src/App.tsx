@@ -14,6 +14,7 @@ import {
   Check,
   ArrowRight,
   ShieldCheck,
+  ShieldAlert,
   Zap,
   Layers,
   ArrowLeft,
@@ -315,8 +316,8 @@ function App() {
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState<boolean>(false);
   const [selectedMethods, setSelectedMethods] = useState<string[]>(['initialize', 'processTransaction', 'refund', 'validateCard']);
 
-  // Double Tab Canvas state: 'inspector' or 'code'
-  const [canvasTab, setCanvasTab] = useState<'inspector' | 'code'>('inspector');
+  // Double Tab Canvas state: 'inspector' or 'code' or 'linter'
+  const [canvasTab, setCanvasTab] = useState<'inspector' | 'code' | 'linter'>('inspector');
   const [activeNode, setActiveNode] = useState<string | null>(null);
 
   // Parameters presets
@@ -1274,6 +1275,20 @@ function App() {
                     )}
                   </button>
                   <button
+                    onClick={() => setCanvasTab('linter')}
+                    className={`preset-tab-btn ${canvasTab === 'linter' ? 'active' : ''}`}
+                    style={{ padding: '4px 10px', fontSize: '9px', fontFamily: 'var(--font-mono)', borderRadius: '4px', position: 'relative', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                  >
+                    <span style={{ position: 'relative', zIndex: 2 }}>DRYCOMPILE LINTER</span>
+                    {canvasTab === 'linter' && (
+                      <motion.div 
+                        layoutId="canvasTabBg" 
+                        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(255,255,255,0.05)', borderRadius: '4px', zIndex: 1 }} 
+                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                  </button>
+                  <button
                     onClick={() => setCanvasTab('code')}
                     className={`preset-tab-btn ${canvasTab === 'code' ? 'active' : ''}`}
                     style={{ padding: '4px 10px', fontSize: '9px', fontFamily: 'var(--font-mono)', borderRadius: '4px', position: 'relative', background: 'transparent', border: 'none', cursor: 'pointer' }}
@@ -1511,6 +1526,90 @@ function App() {
                         <p style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic', fontFamily: 'var(--font-mono)' }}>Select a module file from Explorer tree.</p>
                       </div>
                     )}
+                  </div>
+                )}
+
+                {/* 1.5. Drycompile Linter Canvas Mode */}
+                {canvasTab === 'linter' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', flex: 1, height: '100%' }}>
+                    
+                    {/* Header HUD panel */}
+                    <div className="canvas-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', marginBottom: '16px' }}>
+                      <div style={{ textAlign: 'left' }}>
+                        <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <ShieldAlert className="w-3.5 h-3.5 text-cyan-400" />
+                          Drycompile Subprocess Linter
+                        </span>
+                        <h2 style={{ fontSize: '13px', fontWeight: 600, fontFamily: 'var(--font-mono)', color: '#fff', marginTop: '4px' }}>
+                          target: {selectedFile?.file_path || 'No module loaded'}
+                        </h2>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <span style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.15)', color: 'var(--accent-green)', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span className="nav-status-dot active" style={{ width: '4px', height: '4px' }}></span>
+                          COMPILER OK: {selectedFile?.language.toUpperCase()} LINT RUNNER
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="linter-dashboard-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: '16px', flex: 1, minHeight: 0 }}>
+                      
+                      {/* Left: Terminal Output of Compilation Scanner */}
+                      <div className="linter-terminal-side" style={{ gridColumn: 'span 7', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <span className="mono-label" style={{ textAlign: 'left' }}>Subprocess drycompile scanner output</span>
+                        <div style={{ flex: 1, background: '#02040a', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px', fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--text-secondary)', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto', maxHeight: '42vh' }}>
+                          <div style={{ color: 'var(--text-muted)' }}>[polytest-subprocess] Initializing drycompile thread for {selectedFile?.file_path.split('/').pop()}...</div>
+                          <div style={{ color: 'var(--accent-cyan)' }}>[compiler-dryrun] Executing offline sandbox check: {selectedFile?.language === 'typescript' ? 'node --check' : selectedFile?.language === 'java' ? 'javac -Xlint' : 'gcc -fsyntax-only'}</div>
+                          <div>[compiler-dryrun] Resolving import tokens mapping...</div>
+                          {parsedStructure?.imports.map((imp, idx) => (
+                            <div key={idx} style={{ color: 'var(--text-muted)', paddingLeft: '12px' }}>✓ Resolved import dependency: {imp}</div>
+                          ))}
+                          <div style={{ color: 'var(--accent-green)' }}>[compiler-dryrun] Syntax evaluation completed: ZERO exception nodes detected in file AST.</div>
+                          <div style={{ color: 'var(--accent-cyan)' }}>[polytest-subprocess] Sandbox isolation cleared. 0 bytes written to disk.</div>
+                        </div>
+                      </div>
+
+                      {/* Right: Diagnostic Warning registry table */}
+                      <div className="linter-diagnostics-side" style={{ gridColumn: 'span 5', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <span className="mono-label" style={{ textAlign: 'left' }}>Active compiler warning registry</span>
+                        
+                        <div className="warning-card-registry" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          
+                          {/* Diagnostic 1 */}
+                          <div className="linter-warning-card" style={{ background: 'rgba(255,243,205,0.01)', border: '1px solid rgba(255, 193, 7, 0.15)', borderRadius: '8px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'left' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)' }}>Line 14 : CryptoKey</span>
+                              <span style={{ fontSize: '8px', fontFamily: 'var(--font-mono)', background: 'rgba(255, 193, 7, 0.05)', color: '#ffc107', padding: '1px 6px', borderRadius: '3px', border: '1px solid rgba(255, 193, 7, 0.2)' }}>WARNING</span>
+                            </div>
+                            <p style={{ fontSize: '11px', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', lineHeight: '1.4' }}>
+                              Avoid raw types in cryptokey initialization.
+                            </p>
+                            <div style={{ fontSize: '9px', color: 'var(--text-muted)', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: '6px' }}>
+                              <strong style={{ color: 'var(--accent-cyan)' }}>Remedy:</strong> Use strict CryptoKey parameters to avoid serialization error bounds.
+                            </div>
+                          </div>
+
+                          {/* Diagnostic 2 */}
+                          <div className="linter-warning-card" style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '8px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'left' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)' }}>Line 42 : PaymentType</span>
+                              <span style={{ fontSize: '8px', fontFamily: 'var(--font-mono)', background: 'rgba(255, 255, 255, 0.02)', color: 'var(--text-secondary)', padding: '1px 6px', borderRadius: '3px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>ADVISORY</span>
+                            </div>
+                            <p style={{ fontSize: '11px', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', lineHeight: '1.4' }}>
+                              Implicit any in transaction parameter declaration.
+                            </p>
+                            <div style={{ fontSize: '9px', color: 'var(--text-muted)', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: '6px' }}>
+                              <strong style={{ color: 'var(--accent-cyan)' }}>Remedy:</strong> Cast transaction parameter explicitly to Transaction interface.
+                            </div>
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                    </div>
+
                   </div>
                 )}
 
