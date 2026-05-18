@@ -26,7 +26,7 @@
 }
 
 /* ========================================================================= */
-/* BASE DEFAULTS & LAYOUT POLISHING */
+/* BASE DEFAULTS & GLOBAL RESETS */
 /* ========================================================================= */
 * {
   box-sizing: border-box;
@@ -41,6 +41,9 @@ body {
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
   overflow-x: hidden;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(140, 82, 255, 0.04) 0, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(0, 245, 255, 0.04) 0, transparent 50%);
 }
 
 /* Precise scroll tracks */
@@ -87,7 +90,21 @@ p {
   color: var(--text-muted);
 }
 
-/* Shared High-Precision Layout Panels */
+.gradient-text {
+  background: linear-gradient(to right, var(--accent-cyan), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Common Layout elements */
+.select-none {
+  user-select: none;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 .crisp-panel {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -139,6 +156,8 @@ p {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  border: none;
+  cursor: pointer;
   transition: all 0.2s ease;
 }
 
@@ -157,7 +176,6 @@ p {
   cursor: not-allowed;
 }
 
-/* Secondary Button outline styling */
 .crisp-button-secondary {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--border-color);
@@ -170,6 +188,8 @@ p {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  cursor: pointer;
+  text-decoration: none;
   transition: all 0.2s ease;
 }
 
@@ -183,17 +203,28 @@ p {
 /* 1. MARKETING SAAS LANDING PAGE LAYOUT */
 /* ========================================================================= */
 
+/* Navbar block */
 .saas-nav-block {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 14px 40px;
   border-bottom: 1px solid var(--border-color);
-  background: rgba(3, 7, 18, 0.8);
+  background: rgba(3, 7, 18, 0.85);
   backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
   z-index: 100;
+}
+
+.brand-icon-box {
+  background: rgba(0, 245, 255, 0.05);
+  border: 1px solid rgba(0, 245, 255, 0.15);
+  padding: 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .saas-nav-links {
@@ -205,11 +236,53 @@ p {
   color: var(--text-secondary);
 }
 
+.saas-nav-links a {
+  text-decoration: none;
+  color: var(--text-secondary);
+  transition: color 0.15s ease;
+}
+
 .saas-nav-links a:hover {
   color: var(--text-primary);
 }
 
-/* Hero Section */
+.nav-split-divider {
+  width: 1px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.nav-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-secondary);
+}
+
+.nav-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  position: relative;
+}
+
+.nav-status-dot.active {
+  background: var(--accent-green);
+  box-shadow: 0 0 6px var(--accent-green);
+}
+
+.nav-status-dot.sandbox {
+  background: var(--accent-yellow);
+  box-shadow: 0 0 6px var(--accent-yellow);
+}
+
+/* Landing Hero block */
 .hero-wrapper {
   max-w: 1200px;
   width: 100%;
@@ -225,7 +298,7 @@ p {
   grid-column: span 6;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
   text-align: left;
 }
 
@@ -238,20 +311,37 @@ p {
   letter-spacing: 0.1em;
   background: rgba(0, 245, 255, 0.04);
   border: 1px solid rgba(0, 245, 255, 0.15);
-  padding: 4px 10px;
-  border-radius: 4px;
+  padding: 6px 12px;
+  border-radius: 6px;
   width: fit-content;
 }
 
 .hero-heading {
-  font-size: 40px;
+  font-size: 42px;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.15;
   letter-spacing: -0.03em;
 }
 
-.hero-visual-frame-crisp {
+.hero-description {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.hero-cta-buttons {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.hero-right-visual {
   grid-column: span 6;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.hero-visual-frame-crisp {
   border: 1px solid var(--border-color);
   border-radius: 16px;
   background: #090d16;
@@ -262,10 +352,15 @@ p {
   justify-content: center;
   max-width: 500px;
   width: 100%;
-  justify-self: flex-end;
 }
 
-/* Feature Grid */
+.hero-visual-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+
+/* Feature grid block */
 .features-grid-wrapper {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -274,7 +369,6 @@ p {
   width: 100%;
   margin: 0 auto;
   padding: 60px 40px;
-  border-top: 1px solid var(--border-color);
 }
 
 .feature-box-crisp {
@@ -286,76 +380,346 @@ p {
   flex-direction: column;
   gap: 16px;
   text-align: left;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.feature-box-crisp:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-hover);
 }
 
 .icon-wrapper-badge {
   padding: 8px;
-  border-radius: 6px;
+  border-radius: 8px;
   border: 1px solid var(--border-color);
   background: rgba(255, 255, 255, 0.02);
   width: fit-content;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-secondary);
 }
 
-.icon-wrapper-badge.cyan { color: var(--accent-cyan); }
-.icon-wrapper-badge.purple { color: var(--accent-purple); }
-.icon-wrapper-badge.green { color: var(--accent-green); }
-.icon-wrapper-badge.red { color: var(--accent-red); }
+.icon-wrapper-badge.cyan { color: var(--accent-cyan); background: rgba(0, 245, 255, 0.04); border-color: rgba(0, 245, 255, 0.15); }
+.icon-wrapper-badge.purple { color: var(--accent-purple); background: rgba(157, 78, 221, 0.04); border-color: rgba(157, 78, 221, 0.15); }
+.icon-wrapper-badge.green { color: var(--accent-green); background: rgba(16, 185, 129, 0.04); border-color: rgba(16, 185, 129, 0.15); }
+.icon-wrapper-badge.red { color: var(--accent-red); background: rgba(239, 68, 68, 0.04); border-color: rgba(239, 68, 68, 0.15); }
 
-/* Pricing Grid */
-.pricing-section-wrapper {
+.feature-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.feature-card-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* VS Code Integration Block */
+.saas-vscode-section {
   max-w: 1200px;
   width: 100%;
   margin: 0 auto;
   padding: 80px 40px;
   border-top: 1px solid var(--border-color);
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 40px;
+  align-items: center;
+}
+
+.vscode-left-text {
+  grid-column: span 5;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  text-align: left;
+}
+
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--accent-purple);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.section-main-heading {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.vscode-terminal-cmd {
+  background: #02050b;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent-cyan);
+  display: flex;
+  align-items: center;
+}
+
+.vscode-right-mockup {
+  grid-column: span 7;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.simulated-editor-window {
+  width: 100%;
+  max-width: 580px;
+  background: #090c15;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px 20px 24px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.editor-window-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+}
+
+.dot-btn {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dot-btn.red { background: #ff5f56; }
+.dot-btn.yellow { background: #ffbd2e; }
+.dot-btn.green { background: #27c93f; }
+
+.editor-window-title {
+  margin-left: 12px;
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+/* Pricing grid blocks */
+.section-header-block {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
 }
 
 .pricing-grid-crisp {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 24px;
-  margin-top: 40px;
+  margin-top: 48px;
 }
 
 .pricing-card-crisp {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 16px;
-  padding: 32px;
+  padding: 36px 32px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
   text-align: left;
   position: relative;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.pricing-card-crisp:hover {
+  transform: translateY(-2px);
 }
 
 .pricing-card-crisp.highlighted {
   border-color: rgba(255, 255, 255, 0.15);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  background: radial-gradient(circle at top right, rgba(0, 245, 255, 0.02), var(--bg-card) 60%);
 }
 
-.pricing-pop-tag {
+.pricing-popular-tag {
   position: absolute;
   top: -10px;
-  right: 20px;
+  right: 24px;
   background: var(--text-primary);
   color: var(--bg-primary);
   font-size: 8px;
   font-family: var(--font-mono);
   font-weight: 700;
-  padding: 3px 10px;
+  padding: 4px 12px;
   border-radius: 4px;
   text-transform: uppercase;
+}
+
+.pricing-card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.pricing-card-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.pricing-card-amount-block {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  padding-bottom: 20px;
+}
+
+.pricing-amount {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.pricing-period {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.pricing-features-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.pricing-features-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pricing-features-list li.highlight-item {
+  color: var(--text-primary);
 }
 
 /* ========================================================================= */
 /* 2. HIGH-PRECISION DEVELOPER WORKSPACE LAYOUT */
 /* ========================================================================= */
 
+/* Workspace Header HUD block */
+.console-hud-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.console-hud-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.console-hud-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-icon-box {
+  background: rgba(0, 245, 255, 0.05);
+  border: 1px solid rgba(0, 245, 255, 0.15);
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.console-hud-brand-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.console-hud-brand-subtitle {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+.console-workspace-select {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 6px 32px 6px 12px;
+  border-radius: 6px;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234b5563' stroke-width='2.5'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 10px;
+}
+
+.console-hud-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.diagnostics-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(3, 7, 18, 0.4);
+  border: 1px solid var(--border-color);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.icon-button-hud {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.icon-button-hud:hover {
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-primary);
+}
+
+.avatar-hud {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+}
+
+/* 3-Column main console workspace grid */
 .workspace-grid-crisp {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
@@ -367,7 +731,7 @@ p {
   flex: 1;
 }
 
-/* IDE Sidebar Explorer with Nested Lines */
+/* 1. IDE Sidebar files explorer */
 .ide-explorer-panel {
   grid-column: span 3;
   padding: 16px;
@@ -398,9 +762,9 @@ p {
 .tree-node-nested-line-container {
   display: flex;
   flex-direction: column;
-  padding-left: 20px;
+  padding-left: 18px;
   border-left: 1px solid rgba(255, 255, 255, 0.05); /* IDE Guide lines */
-  margin-left: 10px;
+  margin-left: 11px;
   gap: 2px;
 }
 
@@ -428,7 +792,15 @@ p {
   border: 1px solid rgba(255, 255, 255, 0.02);
 }
 
-/* Center Panel (Code workspace) */
+.source-root-banner {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color);
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-top: auto;
+}
+
+/* 2. Workspace Center (Editor Code AST explorer) */
 .workspace-center-panel {
   grid-column: span 6;
   display: flex;
@@ -459,16 +831,34 @@ p {
   margin-bottom: 16px;
 }
 
+.workspace-canvas {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.canvas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  padding-bottom: 14px;
+}
+
 .ast-inspected-card-container {
   display: flex;
   flex-direction: column;
   gap: 10px;
   overflow-y: auto;
   max-height: 52vh;
-  margin-top: 8px;
+  margin-top: 16px;
+  padding-right: 2px;
 }
 
-/* Surgical AST blocks */
 .ast-method-block {
   background: rgba(255, 255, 255, 0.01);
   border: 1px solid var(--border-color);
@@ -528,7 +918,7 @@ p {
   color: #030712;
 }
 
-/* Controls Column (Right) */
+/* 3. Controls Right Sidebar panel & Gauge widgets */
 .controls-right-sidebar {
   grid-column: span 3;
   display: flex;
@@ -571,12 +961,50 @@ p {
   transform: scale(1.2);
 }
 
-/* SVG health progress circle settings */
-.syntax-circle-path {
-  transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+.setting-row-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-/* Simulated diagnostic error logs list */
+.checkbox-custom {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(3, 7, 18, 0.4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.checkbox-custom:checked {
+  background: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+}
+
+.checkbox-custom:checked::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 8px;
+  border: solid #030712;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  top: 1px;
+}
+
+.stats-grid-double {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  width: 100%;
+  margin-top: 4px;
+}
+
 .diagnostic-issues-scroller {
   display: flex;
   flex-direction: column;
@@ -599,12 +1027,7 @@ p {
   font-size: 9px;
 }
 
-.diagnostic-log-item.success {
-  background: rgba(16, 185, 129, 0.02);
-  border-color: rgba(16, 185, 129, 0.08);
-}
-
-/* Terminal interface logs */
+/* Subprocess Terminal console block */
 .terminal-hud-header {
   display: flex;
   align-items: center;
@@ -622,6 +1045,13 @@ p {
 }
 
 .terminal-tab-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
   transition: color 0.15s ease;
 }
 
@@ -658,7 +1088,7 @@ p {
   color: var(--text-muted);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   margin-top: auto;
 }
 
