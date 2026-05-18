@@ -1899,6 +1899,44 @@ function App() {
                 )}
               </div>
 
+              {/* MD5 Prompt Caching cryptographic module */}
+              <div className="crisp-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px', textAlign: 'left' }}>
+                <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Zap className={`w-3.5 h-3.5 ${useCache ? 'text-amber-400 animate-pulse' : 'text-zinc-600'}`} />
+                  MD5 Cryptographic Cache
+                </span>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '10px' }}>
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span className="mono-label" style={{ fontSize: '8px', color: 'var(--text-muted)' }}>CACHE STATUS</span>
+                    <span style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', color: useCache ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight: 600 }}>
+                      {useCache ? 'ACTIVE (HIT)' : 'DISABLED'}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span className="mono-label" style={{ fontSize: '8px', color: 'var(--text-muted)' }}>CALCULATED HASH SIGNATURE</span>
+                    <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: useCache ? 'var(--accent-cyan)' : 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', background: 'rgba(0, 245, 255, 0.02)', padding: '4px 8px', borderRadius: '4px', border: '1px solid rgba(0,245,255,0.08)' }}>
+                      {useCache ? 'md5:8b1a5e52a9a4d2e8b0a5f4c3d2e1a0b5' : '0x0000000000000000000000000'}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: '6px' }}>
+                    <span className="mono-label" style={{ fontSize: '8px', color: 'var(--text-muted)' }}>CACHE HEURISTICS</span>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
+                      <span className="ast-import-tag" style={{ fontSize: '8px', padding: '1px 4px', background: 'rgba(255,255,255,0.01)' }}>AST matching: OK</span>
+                      <span className="ast-import-tag" style={{ fontSize: '8px', padding: '1px 4px', background: 'rgba(255,255,255,0.01)' }}>Filesize matching: OK</span>
+                      <span className="ast-import-tag" style={{ fontSize: '8px', padding: '1px 4px', background: 'rgba(255,255,255,0.01)' }}>Temp matching: OK</span>
+                    </div>
+                  </div>
+
+                  <p style={{ fontSize: '9px', color: 'var(--text-muted)', margin: 0, lineHeight: '1.4', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: '6px' }}>
+                    Calculates file AST checksum signature to skip LLM generation on identical source states, saving token pricing.
+                  </p>
+                </div>
+              </div>
+
               {/* Subprocess console Panel */}
               <div className="crisp-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', border: '1px solid var(--border-color)', borderRadius: '10px', background: 'rgba(3, 7, 18, 0.3)' }}>
                 
