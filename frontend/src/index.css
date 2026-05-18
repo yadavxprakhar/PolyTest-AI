@@ -1131,3 +1131,40 @@ p {
 .animate-slideUp {
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* ========================================================================= */
+/* 4. ADVANCED DEVELOPER WIDGET EXTRA ALIGNMENTS */
+/* ========================================================================= */
+.code-editor-pane {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.06) transparent;
+}
+
+.code-editor-line {
+  border-radius: 4px;
+  padding: 1px 4px;
+  transition: background-color 0.12s ease;
+}
+
+.code-editor-line:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.preset-tab-btn {
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+}
+
+.preset-tab-btn.active {
+  color: var(--accent-cyan);
+}
+
+.coverage-analytics-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+

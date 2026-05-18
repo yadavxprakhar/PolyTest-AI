@@ -17,7 +17,9 @@ import {
   Layers,
   ArrowLeft,
   Sliders,
-  AlertTriangle
+  AlertTriangle,
+  Copy,
+  Download
 } from 'lucide-react';
 
 // --- Types ---
@@ -130,6 +132,149 @@ const SANDBOX_STRUCTURES: Record<string, ParsedStructure> = {
   }
 };
 
+const MOCK_GENERATED_CODE: Record<string, string> = {
+  'src/services/UserAuth.ts': `import { UserAuth } from './UserAuth';
+import { dbConnector } from 'dbConnector';
+
+describe('UserAuth Service Integration Suite', () => {
+  const auth = new UserAuth();
+
+  beforeAll(async () => {
+    await dbConnector.connect();
+  });
+
+  test('should authenticate user with valid credentials & MFA', async () => {
+    const session = await auth.login({ email: 'dev@polytest.ai' }, '998122');
+    expect(session).toBeDefined();
+    expect(session.sessionId).toBeTruthy();
+    expect(session.status).toBe('ACTIVE');
+  });
+
+  test('should reject password reset request for invalid email formats', async () => {
+    const success = await auth.requestPasswordReset('bad-email-format');
+    expect(success).toBe(false);
+  });
+
+  test('should correctly hash security credentials on registration', async () => {
+    const hash = await hashCredentials('securePass123!');
+    expect(hash).not.toBe('securePass123!');
+    expect(hash.length).toBeGreaterThan(32);
+  });
+});`,
+
+  'src/services/PaymentService.ts': `import { PaymentService } from './PaymentService';
+import { stripe } from 'stripe';
+
+describe('PaymentService API Gateway Suite', () => {
+  const payment = new PaymentService();
+
+  beforeAll(() => {
+    payment.initialize('sk_test_51M_polytest', true);
+  });
+
+  test('should successfully compile sandboxed transactions', async () => {
+    const receipt = await payment.processTransaction(2900, 'USD');
+    expect(receipt).toHaveProperty('id');
+    expect(receipt.captured).toBe(true);
+    expect(receipt.amount).toBe(2900);
+  });
+
+  test('should validate cards conforming to standard Luhn systems', () => {
+    const isValid = payment.validateCard('4111222233334444', '12/28');
+    expect(isValid).toBe(true);
+  });
+
+  test('should reject refunds exceeding purchase amounts', async () => {
+    await expect(payment.refund('tx_10029', 99999))
+      .rejects.toThrow('Refund limit exceeded');
+  });
+});`,
+
+  'src/api/DataParser.cpp': `#include <gtest/gtest.h>
+#include "DataParser.h"
+
+class DataParserTest : public ::testing::Test {
+protected:
+    DataParser parser;
+};
+
+TEST_F(DataParserTest, LoadsBuffersWithCleanTermination) {
+    const char* sample = "AST_PROFILE_STREAM_PACKET";
+    bool success = parser.loadBuffer(sample, 25);
+    EXPECT_TRUE(success);
+}
+
+TEST_F(DataParserTest, StandardDeviationComputationMatches) {
+    std::vector<double> dataset = {10.0, 12.0, 23.0, 8.0, 16.0};
+    double stddev = parser.computeStandardDeviation(dataset);
+    EXPECT_NEAR(stddev, 5.385, 0.001);
+}
+
+TEST_F(DataParserTest, ShutdownSequenceClosesDevices) {
+    int code = initializeDevice();
+    EXPECT_EQ(code, 0);
+    shutdownDevice();
+}`,
+
+  'src/utils.go': `package main
+
+import (
+	"context"
+	"testing"
+)
+
+func TestProcessOrder_IntegrationSuccess(t *testing.T) {
+	ctx := context.Background()
+	order := &Order{ID: "ORD-9921", Subtotal: 150.00}
+	
+	err := ProcessOrder(ctx, order)
+	if err != nil {
+		t.Fatalf("Expected nil error, got: %v", err)
+	}
+}
+
+func TestCalculateTaxes_PreciseRateMatching(t *testing.T) {
+	subtotal := 100.00
+	rate := 0.0825
+	
+	taxes := CalculateTaxes(subtotal, rate)
+	expected := 8.25
+	
+	if taxes != expected {
+		t.Errorf("Expected %.2f, got %.2f", expected, taxes)
+	}
+}`,
+
+  'src/models/AuthService.java': `package com.polytest.services;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+public class AuthServiceTest {
+    private AuthService authService;
+
+    @BeforeEach
+    public void setup() {
+        authService = new AuthService();
+    }
+
+    @Test
+    public void testAuthenticateUser_Success() {
+        User user = new User("dev@polytest.ai");
+        boolean authenticated = authService.authenticateUser(user, "adminToken112");
+        assertTrue(authenticated);
+    }
+
+    @Test
+    public void testSessionInvalidation() {
+        UUID sessionToken = UUID.randomUUID();
+        authService.invalidateSession(sessionToken);
+        // Validates subprocess linter output
+    }
+}`
+};
+
 const API_BASE = 'http://127.0.0.1:8000/api/v1';
 
 function App() {
@@ -148,6 +293,12 @@ function App() {
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState<boolean>(false);
   const [selectedMethods, setSelectedMethods] = useState<string[]>(['initialize', 'processTransaction', 'refund', 'validateCard']);
 
+  // Double Tab Canvas state: 'inspector' or 'code'
+  const [canvasTab, setCanvasTab] = useState<'inspector' | 'code'>('inspector');
+
+  // Parameters presets
+  const [selectedPreset, setSelectedPreset] = useState<'standard' | 'robust' | 'fast'>('standard');
+
   // Advanced AI Slider states
   const [temperature, setTemperature] = useState<number>(0.2);
   const [maxTokens, setMaxTokens] = useState<number>(2048);
@@ -159,6 +310,9 @@ function App() {
   const [useCache, setUseCache] = useState<boolean>(true);
   const [runImmediately, setRunImmediately] = useState<boolean>(true);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+
+  // Active Code Output View
+  const [currentGeneratedCode, setCurrentGeneratedCode] = useState<string>(MOCK_GENERATED_CODE['src/services/PaymentService.ts']);
 
   // Radial Progress parameters
   const [syntaxCorrectness, setSyntaxCorrectness] = useState<number>(98);
@@ -175,6 +329,27 @@ function App() {
     '🔌 Local host connection: Ready to query REST endpoints.',
     'ℹ️ Sandbox fallback mode is ACTIVE (Mock profiles loaded).'
   ]);
+
+  // Adjust parameters when a preset is toggled
+  const applyPreset = (preset: 'standard' | 'robust' | 'fast') => {
+    setSelectedPreset(preset);
+    if (preset === 'standard') {
+      setTemperature(0.2);
+      setMaxTokens(2048);
+      setCoverageTarget(90);
+      setTerminalLogs(prev => [...prev, '⚙️ Selected preset: STANDARD (Temp=0.2, Tokens=2048, Cov=90%)']);
+    } else if (preset === 'robust') {
+      setTemperature(0.4);
+      setMaxTokens(3072);
+      setCoverageTarget(100);
+      setTerminalLogs(prev => [...prev, '⚙️ Selected preset: ROBUST (Temp=0.4, Tokens=3072, Cov=100%)']);
+    } else if (preset === 'fast') {
+      setTemperature(0.0);
+      setMaxTokens(1024);
+      setCoverageTarget(75);
+      setTerminalLogs(prev => [...prev, '⚙️ Selected preset: FAST RUN (Temp=0.0, Tokens=1024, Cov=75%)']);
+    }
+  };
 
   // 1. Health Ping check to API Server
   const checkHealth = async () => {
@@ -245,6 +420,11 @@ function App() {
     setSelectedFile(file);
     setIsLoadingAnalysis(true);
     setTerminalLogs(prev => [...prev, `📂 Loading AST structural patterns: ${file.file_path}`]);
+
+    // Update active mockup code block
+    if (MOCK_GENERATED_CODE[file.file_path]) {
+      setCurrentGeneratedCode(MOCK_GENERATED_CODE[file.file_path]);
+    }
 
     if (isBackendOnline) {
       try {
@@ -336,6 +516,10 @@ function App() {
             `✅ Compiler Check: PASSED. Generated 12 validation blocks.`
           ]);
 
+          if (mainRes.generated_code) {
+            setCurrentGeneratedCode(mainRes.generated_code);
+          }
+
           if (mainRes.run_result) {
             const run = mainRes.run_result;
             setTerminalLogs(prev => [
@@ -350,6 +534,9 @@ function App() {
             setValidatedCount(prev => prev + 1);
             setIssueCount(0);
           }
+
+          // Dynamic tab transition to preview the code
+          setCanvasTab('code');
         } else {
           setTerminalLogs(prev => [...prev, `❌ Generation check failed: ${data.detail || 'Internal server error'}`]);
         }
@@ -388,9 +575,13 @@ function App() {
             setValidatedCount(prev => prev + 1);
             setIssueCount(0);
             setIsGenerating(false);
+
+            // Dynamic tab transition to code preview
+            setCanvasTab('code');
           }, 1000);
         } else {
           setIsGenerating(false);
+          setCanvasTab('code');
         }
       }, 1200);
       return;
@@ -410,7 +601,50 @@ function App() {
     }
   };
 
+  // Utility to split code into syntax highlighted sections
+  const renderHighlightedCode = (code: string) => {
+    const lines = code.split('\n');
+    return lines.map((line, idx) => {
+      // Basic keyword mapping for color styling
+      let renderedLine = <span style={{ color: 'var(--text-primary)' }}>{line}</span>;
+      
+      if (line.trim().startsWith('import') || line.trim().startsWith('const') || line.trim().startsWith('package')) {
+        renderedLine = (
+          <span>
+            <span style={{ color: 'var(--accent-purple)', fontWeight: 600 }}>{line.split(' ')[0]}</span>
+            <span style={{ color: 'var(--text-secondary)' }}>{line.substring(line.split(' ')[0].length)}</span>
+          </span>
+        );
+      } else if (line.includes('describe') || line.includes('test') || line.includes('TEST_F') || line.includes('Test')) {
+        renderedLine = (
+          <span>
+            <span style={{ color: 'var(--accent-cyan)', fontWeight: 600 }}>
+              {line.includes('describe') ? 'describe' : line.includes('test') ? 'test' : 'TEST_F'}
+            </span>
+            <span style={{ color: '#fff' }}>
+              {line.substring(line.indexOf('('))}
+            </span>
+          </span>
+        );
+      } else if (line.includes('expect') || line.includes('EXPECT_')) {
+        renderedLine = (
+          <span>
+            <span style={{ color: 'var(--accent-green)', fontWeight: 600 }}>expect</span>
+            <span style={{ color: 'var(--text-secondary)' }}>{line.substring(line.indexOf('expect') + 6)}</span>
+          </span>
+        );
+      }
 
+      return (
+        <div key={idx} className="code-editor-line" style={{ display: 'flex', gap: '16px', fontFamily: 'var(--font-mono)', fontSize: '11px', lineHeight: '1.6' }}>
+          <span className="code-line-number" style={{ width: '28px', color: 'var(--text-muted)', textAlign: 'right', display: 'inline-block', userSelect: 'none' }}>
+            {idx + 1}
+          </span>
+          {renderedLine}
+        </div>
+      );
+    });
+  };
 
   return (
     <div className="select-none">
@@ -607,7 +841,7 @@ function App() {
 
               {/* Plan 2: Promoted SaaS Card */}
               <div className="pricing-card-crisp highlighted">
-                <span className="pricing-pop-tag">
+                <span className="pricing-popular-tag">
                   Popular
                 </span>
                 <div>
@@ -739,7 +973,7 @@ function App() {
           {/* Main Dashboard HUD Content */}
           <main className="workspace-grid-crisp">
             
-            {/* Left Side: Directory folders */}
+            {/* Left Side: Directory folders & Mini-charts */}
             <section className="ide-explorer-panel crisp-panel">
               <div className="flex-row-align" style={{ justifyContent: 'space-between', width: '100%' }}>
                 <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -756,7 +990,7 @@ function App() {
                 </button>
               </div>
 
-              {/* Realistic nested directories list with vertical guide lines */}
+              {/* Directory Tree */}
               <div className="file-tree-container" style={{ width: '100%' }}>
                 <div className="tree-node-folder flex-row-align">
                   <Folder className="w-3.5 h-3.5 text-purple-400 fill-current" />
@@ -788,110 +1022,234 @@ function App() {
                 </div>
               </div>
 
+              {/* Historical Coverage Performance Mini-Charts Analytics */}
+              <div className="coverage-analytics-box" style={{ width: '100%', borderTop: '1px solid var(--border-color)', paddingTop: '14px', marginTop: '8px' }}>
+                <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+                  <Activity className="w-3.5 h-3.5 text-purple-400" />
+                  Module Coverage
+                </span>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  
+                  {/* Bar 1 */}
+                  <div className="coverage-bar-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
+                      <span>UserAuth.ts</span>
+                      <span style={{ color: 'var(--accent-green)' }}>92%</span>
+                    </div>
+                    <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.03)', borderRadius: '2px', overflow: 'hidden' }}>
+                      <div style={{ width: '92%', height: '100%', background: 'var(--accent-green)', borderRadius: '2px' }} />
+                    </div>
+                  </div>
+
+                  {/* Bar 2 */}
+                  <div className="coverage-bar-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
+                      <span>PaymentService.ts</span>
+                      <span style={{ color: 'var(--accent-cyan)' }}>98%</span>
+                    </div>
+                    <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.03)', borderRadius: '2px', overflow: 'hidden' }}>
+                      <div style={{ width: '98%', height: '100%', background: 'var(--accent-cyan)', borderRadius: '2px' }} />
+                    </div>
+                  </div>
+
+                  {/* Bar 3 */}
+                  <div className="coverage-bar-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
+                      <span>DataParser.cpp</span>
+                      <span style={{ color: 'var(--accent-purple)' }}>84%</span>
+                    </div>
+                    <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.03)', borderRadius: '2px', overflow: 'hidden' }}>
+                      <div style={{ width: '84%', height: '100%', background: 'var(--accent-purple)', borderRadius: '2px' }} />
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* Workspace footer */}
               <div className="source-root-banner" style={{ width: '100%' }}>
                 <span className="mono-label" style={{ display: 'block', marginBottom: '4px' }}>Workspace Root</span>
                 <span style={{ color: 'var(--text-secondary)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)', fontSize: '10px' }} title={projectRoot}>{projectRoot}</span>
               </div>
             </section>
 
-            {/* Center: AST workspace */}
+            {/* Center Panel: Dual Canvas Tabs Editor */}
             <section className="workspace-center-panel">
               
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {selectedFile && (
-                  <div className="active-file-tab-crisp">
-                    <FileCode className="w-3.5 h-3.5" style={{ color: getLanguageColor(selectedFile.language) }} />
-                    <span>{selectedFile.file_path.split('/').pop()}</span>
-                    <span style={{ color: 'var(--text-muted)', cursor: 'pointer', marginLeft: '6px' }}>×</span>
-                  </div>
-                )}
-                <div className="active-file-tab-line" />
-              </div>
-
-              <div className="workspace-canvas">
-                <div className="canvas-header">
-                  <div style={{ textAlign: 'left' }}>
-                    <span className="mono-label">AST Parser Class Nodes</span>
-                    <h2 style={{ fontSize: '13px', fontWeight: 600, fontFamily: 'var(--font-mono)', color: '#fff', marginTop: '4px' }}>
-                      class {parsedStructure?.classes?.[0]?.name || 'SourceModule'}
-                    </h2>
-                  </div>
-                  <div>
-                    <span style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', background: 'rgba(0, 245, 255, 0.05)', border: '1px solid rgba(0,245,255,0.15)', color: 'var(--accent-cyan)', padding: '2px 8px', borderRadius: '4px' }}>
-                      {parsedStructure?.complexity || 'Low'}
-                    </span>
-                  </div>
+              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+                
+                {/* Document tabs */}
+                <div style={{ display: 'flex', gap: '4px' }}>
+                  {selectedFile && (
+                    <div className="active-file-tab-crisp">
+                      <FileCode className="w-3.5 h-3.5" style={{ color: getLanguageColor(selectedFile.language) }} />
+                      <span>{selectedFile.file_path.split('/').pop()}</span>
+                    </div>
+                  )}
                 </div>
 
-                {isLoadingAnalysis ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', flex: 1 }}>
-                    <RefreshCw className="w-6 h-6 text-cyan-400 animate-spin" />
-                    <p style={{ fontSize: '11px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>Statically profiling AST nodes...</p>
-                  </div>
-                ) : parsedStructure ? (
-                  <div className="ast-inspected-card-container">
-                    
-                    {/* Rendered class methods */}
-                    {parsedStructure.classes.map((cls) => 
-                      cls.methods.map((method, idx) => {
-                        const isSelected = selectedMethods.includes(method.name);
-                        return (
-                          <div
-                            key={idx}
-                            onClick={() => toggleMethod(method.name)}
-                            className={`ast-method-block ${isSelected ? 'selected' : ''}`}
-                          >
-                            <div className="ast-method-signature">
-                              <span className="ast-method-name">
-                                {method.name}<span style={{ color: 'var(--text-muted)' }}>()</span>
-                              </span>
-                              <span className="ast-method-args">
-                                {method.args}
-                              </span>
-                            </div>
+                {/* Workspace display toggle canvas tabs */}
+                <div className="workspace-canvas-tabs" style={{ display: 'flex', background: 'rgba(255,255,255,0.02)', padding: '3px', borderRadius: '6px', border: '1px solid var(--border-color)', marginBottom: '4px', gap: '4px' }}>
+                  <button
+                    onClick={() => setCanvasTab('inspector')}
+                    className={`preset-tab-btn ${canvasTab === 'inspector' ? 'active' : ''}`}
+                    style={{ padding: '4px 10px', fontSize: '9px', fontFamily: 'var(--font-mono)', borderRadius: '4px' }}
+                  >
+                    AST INSPECTOR
+                  </button>
+                  <button
+                    onClick={() => setCanvasTab('code')}
+                    className={`preset-tab-btn ${canvasTab === 'code' ? 'active' : ''}`}
+                    style={{ padding: '4px 10px', fontSize: '9px', fontFamily: 'var(--font-mono)', borderRadius: '4px' }}
+                  >
+                    CODE PREVIEW
+                  </button>
+                </div>
 
-                            <div className={`ast-checkbox-indicator ${isSelected ? 'checked' : ''}`}>
-                              {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+              </div>
+              <div className="active-file-tab-line" />
+
+              <div className="workspace-canvas">
+                
+                {/* 1. Inspector Canvas Mode */}
+                {canvasTab === 'inspector' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                    <div className="canvas-header">
+                      <div style={{ textAlign: 'left' }}>
+                        <span className="mono-label">AST Parser Class Nodes</span>
+                        <h2 style={{ fontSize: '13px', fontWeight: 600, fontFamily: 'var(--font-mono)', color: '#fff', marginTop: '4px' }}>
+                          class {parsedStructure?.classes?.[0]?.name || 'SourceModule'}
+                        </h2>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', background: 'rgba(0, 245, 255, 0.05)', border: '1px solid rgba(0,245,255,0.15)', color: 'var(--accent-cyan)', padding: '2px 8px', borderRadius: '4px' }}>
+                          Complexity: {parsedStructure?.complexity || 'Low'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {isLoadingAnalysis ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', flex: 1 }}>
+                        <RefreshCw className="w-6 h-6 text-cyan-400 animate-spin" />
+                        <p style={{ fontSize: '11px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>Statically profiling AST nodes...</p>
+                      </div>
+                    ) : parsedStructure ? (
+                      <div className="ast-inspected-card-container">
+                        
+                        {/* Class methods */}
+                        {parsedStructure.classes.map((cls) => 
+                          cls.methods.map((method, idx) => {
+                            const isSelected = selectedMethods.includes(method.name);
+                            return (
+                              <div
+                                key={idx}
+                                onClick={() => toggleMethod(method.name)}
+                                className={`ast-method-block ${isSelected ? 'selected' : ''}`}
+                              >
+                                <div className="ast-method-signature">
+                                  <span className="ast-method-name">
+                                    {method.name}<span style={{ color: 'var(--text-muted)' }}>()</span>
+                                  </span>
+                                  <span className="ast-method-args">
+                                    {method.args}
+                                  </span>
+                                </div>
+
+                                <div className={`ast-checkbox-indicator ${isSelected ? 'checked' : ''}`}>
+                                  {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+
+                        {/* Functions */}
+                        {parsedStructure.functions.map((func, idx) => {
+                          const isSelected = selectedMethods.includes(func.name);
+                          return (
+                            <div
+                              key={idx}
+                              onClick={() => toggleMethod(func.name)}
+                              className={`ast-method-block ${isSelected ? 'selected' : ''}`}
+                            >
+                              <div className="ast-method-signature">
+                                <span className="ast-method-name">
+                                  {func.name}<span style={{ color: 'var(--text-muted)' }}>()</span>
+                                </span>
+                                  <span className="ast-method-args">
+                                    {func.args}
+                                  </span>
+                              </div>
+
+                              <div className={`ast-checkbox-indicator ${isSelected ? 'checked' : ''}`}>
+                                {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+                        <p style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic', fontFamily: 'var(--font-mono)' }}>Select a module file from Explorer tree.</p>
+                      </div>
                     )}
-
-                    {/* Rendered standard modules functions */}
-                    {parsedStructure.functions.map((func, idx) => {
-                      const isSelected = selectedMethods.includes(func.name);
-                      return (
-                        <div
-                          key={idx}
-                          onClick={() => toggleMethod(func.name)}
-                          className={`ast-method-block ${isSelected ? 'selected' : ''}`}
-                        >
-                          <div className="ast-method-signature">
-                            <span className="ast-method-name">
-                              {func.name}<span style={{ color: 'var(--text-muted)' }}>()</span>
-                            </span>
-                            <span className="ast-method-args">
-                              {func.args}
-                            </span>
-                          </div>
-
-                          <div className={`ast-checkbox-indicator ${isSelected ? 'checked' : ''}`}>
-                            {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-                    <p style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic', fontFamily: 'var(--font-mono)' }}>Select a module file from Explorer tree.</p>
                   </div>
                 )}
+
+                {/* 2. Code Preview Canvas Mode (IDE editor window) */}
+                {canvasTab === 'code' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                    <div className="canvas-header">
+                      <div style={{ textAlign: 'left' }}>
+                        <span className="mono-label">Generated Test Suite Preview</span>
+                        <h2 style={{ fontSize: '13px', fontWeight: 600, fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', marginTop: '4px' }}>
+                          test_{selectedFile?.file_path.split('/').pop()}
+                        </h2>
+                      </div>
+                      
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(currentGeneratedCode);
+                            setTerminalLogs(prev => [...prev, '📋 Copied unit test suite code to clipboard!']);
+                          }}
+                          className="icon-button-hud"
+                          title="Copy test code"
+                          style={{ padding: '6px 12px', fontSize: '10px', display: 'flex', gap: '6px' }}
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                          Copy
+                        </button>
+                        <button
+                          onClick={() => {
+                            const blob = new Blob([currentGeneratedCode], { type: 'text/plain' });
+                            const link = document.createElement('a');
+                            link.href = URL.createObjectURL(blob);
+                            link.download = `test_${selectedFile?.file_path.split('/').pop()}`;
+                            link.click();
+                            setTerminalLogs(prev => [...prev, `💾 Saved file local: test_${selectedFile?.file_path.split('/').pop()}`]);
+                          }}
+                          className="icon-button-hud"
+                          title="Export test suite file"
+                          style={{ padding: '6px 12px', fontSize: '10px', display: 'flex', gap: '6px', color: 'var(--accent-cyan)', borderColor: 'var(--accent-cyan)' }}
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          Save Suite
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="code-editor-pane" style={{ background: '#02040a', border: '1px solid rgba(255,255,255,0.03)', borderRadius: '8px', padding: '16px', marginTop: '16px', overflowY: 'auto', maxHeight: '52vh', flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      {renderHighlightedCode(currentGeneratedCode)}
+                    </div>
+                  </div>
+                )}
+
               </div>
             </section>
 
-            {/* Right Side: Settings & Gauge panel */}
+            {/* Right Side: Segmented Presets & Sliders */}
             <section className="controls-right-sidebar">
               
               <div className="crisp-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -899,6 +1257,35 @@ function App() {
                   <Sliders className="w-3.5 h-3.5 text-purple-400" />
                   Parameters Dock
                 </span>
+
+                {/* Segmented Preset Selector */}
+                <div className="preset-configuration-box" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label className="mono-label" style={{ display: 'block', textAlign: 'left' }}>AI Prompts Preset</label>
+                  
+                  <div className="preset-tab-group" style={{ display: 'flex', background: 'rgba(255,255,255,0.02)', padding: '3px', borderRadius: '8px', border: '1px solid var(--border-color)', gap: '4px' }}>
+                    <button
+                      onClick={() => applyPreset('standard')}
+                      className={`preset-tab-btn ${selectedPreset === 'standard' ? 'active' : ''}`}
+                      style={{ flex: 1, padding: '6px 0', fontSize: '9px', fontFamily: 'var(--font-mono)', borderRadius: '6px', background: selectedPreset === 'standard' ? 'var(--text-primary)' : 'transparent', color: selectedPreset === 'standard' ? 'var(--bg-primary)' : 'var(--text-secondary)', fontWeight: 600, border: 'none', cursor: 'pointer' }}
+                    >
+                      STANDARD
+                    </button>
+                    <button
+                      onClick={() => applyPreset('robust')}
+                      className={`preset-tab-btn ${selectedPreset === 'robust' ? 'active' : ''}`}
+                      style={{ flex: 1, padding: '6px 0', fontSize: '9px', fontFamily: 'var(--font-mono)', borderRadius: '6px', background: selectedPreset === 'robust' ? 'var(--text-primary)' : 'transparent', color: selectedPreset === 'robust' ? 'var(--bg-primary)' : 'var(--text-secondary)', fontWeight: 600, border: 'none', cursor: 'pointer' }}
+                    >
+                      ROBUST
+                    </button>
+                    <button
+                      onClick={() => applyPreset('fast')}
+                      className={`preset-tab-btn ${selectedPreset === 'fast' ? 'active' : ''}`}
+                      style={{ flex: 1, padding: '6px 0', fontSize: '9px', fontFamily: 'var(--font-mono)', borderRadius: '6px', background: selectedPreset === 'fast' ? 'var(--text-primary)' : 'transparent', color: selectedPreset === 'fast' ? 'var(--bg-primary)' : 'var(--text-secondary)', fontWeight: 600, border: 'none', cursor: 'pointer' }}
+                    >
+                      FAST RUN
+                    </button>
+                  </div>
+                </div>
 
                 <div className="settings-group">
                   <label className="mono-label" style={{ display: 'block', textAlign: 'left', marginBottom: '4px' }}>LLM PROVIDER</label>
@@ -1079,7 +1466,7 @@ function App() {
               <div className="crisp-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 
                 <div className="terminal-hud-header">
-                  <div className="terminal-hud-tabs">
+                  <div className="terminal-hud-tabs" style={{ display: 'flex', gap: '16px' }}>
                     <button 
                       onClick={() => setTerminalTab('execution')}
                       className={`terminal-tab-btn ${terminalTab === 'execution' ? 'active' : ''}`}
@@ -1155,6 +1542,16 @@ function App() {
               TypeScript Backend + React Frontend Architecture
             </p>
           </footer>
+
+          {/* Linear Gradient Definitions for SVG Circle */}
+          <svg style={{ width: 0, height: 0, position: 'absolute' }}>
+            <defs>
+              <linearGradient id="cyanPurpleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="var(--accent-cyan)" />
+                <stop offset="100%" stopColor="var(--accent-purple)" />
+              </linearGradient>
+            </defs>
+          </svg>
 
         </div>
       )}
