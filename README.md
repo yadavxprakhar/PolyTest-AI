@@ -5,35 +5,6 @@
 
 ---
 
-## 🎨 System Architecture
-
-```mermaid
-graph TD
-    CLI[cli/main.py (Python CLI)] --> CoreConfig[core/config/config_manager.py]
-    CLI --> CoreGen[core/generator/test_generator.py]
-
-    subgraph "REST Engine Core (Node.js & TypeScript)"
-        API[backend/src/index.ts] --> Express[Express REST Controllers]
-        Express --> NodeParser[backend/src/core/parser.ts]
-        Express --> NodeGen[backend/src/core/generator.ts]
-        Express --> NodeRunner[backend/src/core/runner.ts]
-        NodeGen --> CacheDir[cache/ MD5 Cache Logs]
-    end
-
-    subgraph "Interactive Developer Dashboard (React & Framer Motion)"
-        Dashboard[frontend/src/App.tsx] --> Explorer[Interactive Files Explorer & Add File Wizard]
-        Dashboard --> ASTInspect[Holographic AST Class Parser]
-        Dashboard --> LinterHUD[Drycompile Warnings Registry]
-        Dashboard --> Telemetry[Subrunner Sandboxed PID Telemetry]
-        Dashboard --> CacheHUD[MD5 Cache Hit Indicator]
-        Dashboard --> ManualPage[System Manual Overlay subpage]
-    end
-
-    Dashboard -- "JSON REST API calls" --> API
-```
-
----
-
 ## ✨ Features & Capabilities
 
 ### 🌟 1. Holographic AST Class Parser
