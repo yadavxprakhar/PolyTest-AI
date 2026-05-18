@@ -1900,35 +1900,59 @@ function App() {
               </div>
 
               {/* Subprocess console Panel */}
-              <div className="crisp-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div className="crisp-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', border: '1px solid var(--border-color)', borderRadius: '10px', background: 'rgba(3, 7, 18, 0.3)' }}>
                 
-                <div className="terminal-hud-header">
-                  <div className="terminal-hud-tabs" style={{ display: 'flex', gap: '16px' }}>
+                {/* Visual Title Header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
+                  <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Activity className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
+                    Subprocess Subrunner Telemetry
+                  </span>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-mono)', fontSize: '8px', color: 'var(--text-muted)' }}>
+                    <span>PID: <span style={{ color: 'var(--accent-green)' }}>49811</span></span>
+                    <span style={{ width: '1px', height: '8px', background: 'rgba(255,255,255,0.1)' }} />
+                    <span>CPU: <span style={{ color: 'var(--accent-cyan)' }}>12%</span></span>
+                    <span style={{ width: '1px', height: '8px', background: 'rgba(255,255,255,0.1)' }} />
+                    <span>MEM: <span style={{ color: 'var(--accent-purple)' }}>42MB</span></span>
+                  </div>
+                </div>
+
+                <div className="terminal-hud-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                  <div className="terminal-hud-tabs" style={{ display: 'flex', gap: '12px' }}>
                     <button 
                       onClick={() => setTerminalTab('execution')}
                       className={`terminal-tab-btn ${terminalTab === 'execution' ? 'active' : ''}`}
+                      style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', cursor: 'pointer', background: 'none', border: 'none', padding: '4px 8px', borderRadius: '4px', color: terminalTab === 'execution' ? 'var(--accent-cyan)' : 'var(--text-secondary)' }}
                     >
-                      EXECUTION
+                      EXECUTION LOGS
                     </button>
                     <button 
                       onClick={() => setTerminalTab('metrics')}
                       className={`terminal-tab-btn ${terminalTab === 'metrics' ? 'active' : ''}`}
+                      style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', cursor: 'pointer', background: 'none', border: 'none', padding: '4px 8px', borderRadius: '4px', color: terminalTab === 'metrics' ? 'var(--accent-cyan)' : 'var(--text-secondary)' }}
                     >
-                      METRICS
+                      RUN METRICS
                     </button>
                     <button 
                       onClick={() => setTerminalTab('warnings')}
                       className={`terminal-tab-btn ${terminalTab === 'warnings' ? 'active' : ''}`}
+                      style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', cursor: 'pointer', background: 'none', border: 'none', padding: '4px 8px', borderRadius: '4px', color: terminalTab === 'warnings' ? 'var(--accent-cyan)' : 'var(--text-secondary)' }}
                     >
                       DIAGNOSTICS
                     </button>
                   </div>
+
+                  <span style={{ fontSize: '8px', fontFamily: 'var(--font-mono)', background: 'rgba(0, 245, 255, 0.05)', border: '1px solid rgba(0,245,255,0.12)', color: 'var(--accent-cyan)', padding: '2px 6px', borderRadius: '3px' }}>
+                    ISOLATION: SECURE SANDBOX
+                  </span>
                 </div>
 
-                <div className="terminal-canvas-scroller">
+                <div className="terminal-canvas-scroller" style={{ background: '#02040a', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '14px', fontFamily: 'var(--font-mono)', fontSize: '10px', minHeight: '120px', maxHeight: '180px', overflowY: 'auto', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                   {terminalTab === 'execution' && (
                     terminalLogs.map((log, idx) => (
-                      <div key={idx} style={{ lineHeight: '1.5' }}>
+                      <div key={idx} style={{ lineHeight: '1.6', display: 'flex', gap: '6px' }}>
+                        <span style={{ color: 'var(--text-muted)', flexShrink: 0 }}>[sys_run:49811]</span>
                         {log.includes('❌') ? (
                           <span style={{ color: 'var(--accent-red)' }}>{log}</span>
                         ) : log.includes('✅') || log.includes('✨') || log.includes('🟢') ? (
@@ -1945,23 +1969,60 @@ function App() {
                   )}
 
                   {terminalTab === 'metrics' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', color: 'var(--text-secondary)' }}>
-                      <p style={{ color: 'var(--accent-cyan)' }}>📊 AI Test Suite Validation Metrics Summary</p>
-                      <p>✓ Active LLM Provider: <span style={{ color: '#fff' }}>{selectedProvider.toUpperCase()}</span></p>
-                      <p>✓ Current Temperature: <span style={{ color: '#fff' }}>{temperature}</span></p>
-                      <p>✓ Max Tokens Parameter: <span style={{ color: '#fff' }}>{maxTokens} limits</span></p>
-                      <p>✓ Target Test Coverage: <span style={{ color: '#fff' }}>{coverageTarget}% target</span></p>
-                      <p>✓ Run Duration: <span style={{ color: 'var(--accent-green)' }}>0.018s compiled</span></p>
-                      <p>✓ Prompt Hashing Status: <span style={{ color: 'var(--accent-green)' }}>MD5 Caching HIT</span></p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', color: 'var(--text-secondary)' }}>
+                      <p style={{ color: 'var(--accent-cyan)', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '4px', fontSize: '11px', fontWeight: 600 }}>📊 Subrunner Execution Metrics Summary</p>
+                      
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px' }}>
+                          <span>LLM Offline Provider:</span>
+                          <span style={{ color: '#fff', fontWeight: 600 }}>{selectedProvider.toUpperCase()}</span>
+                        </div>
+                        
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px' }}>
+                          <span>Subprocess temperature:</span>
+                          <span style={{ color: '#fff', fontWeight: 600 }}>{temperature} / 1.0</span>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px' }}>
+                          <span>Max Token allocation:</span>
+                          <span style={{ color: '#fff', fontWeight: 600 }}>{maxTokens} / 4096 tokens</span>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: '6px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px' }}>
+                            <span>Target test coverage:</span>
+                            <span style={{ color: 'var(--accent-cyan)', fontWeight: 600 }}>{coverageTarget}% target</span>
+                          </div>
+                          <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.02)', borderRadius: '2px', overflow: 'hidden' }}>
+                            <div style={{ width: `${coverageTarget}%`, height: '100%', background: 'linear-gradient(90deg, var(--accent-cyan), var(--accent-purple))' }} />
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: '6px' }}>
+                          <span>MD5 Cache Signature:</span>
+                          <span style={{ color: 'var(--accent-green)', fontWeight: 600 }}>CACHED HIT (0.018s compiled)</span>
+                        </div>
+                      </div>
                     </div>
                   )}
 
                   {terminalTab === 'warnings' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', color: 'var(--text-secondary)' }}>
-                      <p style={{ color: 'var(--accent-cyan)' }}>🔍 Active Validator Drycompile warnings</p>
-                      <p style={{ color: 'var(--accent-red)' }}>⚠ [PaymentService.ts:Line 14] Warn: Avoid raw type parameters inside cryptographic keys.</p>
-                      <p style={{ color: 'var(--accent-yellow)' }}>⚠ [PaymentService.ts:Line 32] Info: Unused dependency 'stripe' imported on line 2.</p>
-                      <p style={{ color: 'var(--accent-green)' }}>✓ All other AST compiled modules reported 100% syntactically correct.</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', color: 'var(--text-secondary)' }}>
+                      <p style={{ color: 'var(--accent-cyan)', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '4px', fontSize: '11px', fontWeight: 600 }}>🔍 Telemetry Diagnostics Scan Registry</p>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+                          <span style={{ color: 'var(--accent-red)', flexShrink: 0 }}>[WARN]</span>
+                          <p style={{ margin: 0 }}>[PaymentService.ts:14] Avoid raw type parameters inside cryptographic keys.</p>
+                        </div>
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+                          <span style={{ color: 'var(--accent-yellow)', flexShrink: 0 }}>[INFO]</span>
+                          <p style={{ margin: 0 }}>[PaymentService.ts:32] Unused dependency 'stripe' imported on line 2.</p>
+                        </div>
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'flex-start', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: '6px' }}>
+                          <span style={{ color: 'var(--accent-green)', flexShrink: 0 }}>[SUCCESS]</span>
+                          <p style={{ margin: 0, color: 'var(--accent-green)' }}>All other AST compiled modules reported 100% syntactically correct.</p>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
