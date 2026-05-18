@@ -280,6 +280,7 @@ const API_BASE = 'http://127.0.0.1:8000/api/v1';
 function App() {
   // Navigation State: 'landing' or 'console'
   const [viewMode, setViewMode] = useState<'landing' | 'console'>('landing');
+  const [isScrolled, setIsScrolled] = useState<boolean>(false);
 
   // Connection and Workspace States
   const [isBackendOnline, setIsBackendOnline] = useState<boolean>(false);
@@ -372,6 +373,11 @@ function App() {
 
   useEffect(() => {
     checkHealth();
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // 2. Scan Workspace Files
@@ -656,7 +662,7 @@ function App() {
         <div className="landing-layout-root animation-slideUp">
           
           {/* SaaS Header Bar */}
-          <nav className="saas-nav-block">
+          <nav className={`saas-nav-block ${isScrolled ? 'scrolled' : ''}`}>
             <div className="landing-inner-wrap">
               <div className="flex-row-align">
                 <div className="brand-icon-box">
