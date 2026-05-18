@@ -300,8 +300,8 @@ const slideUpItem: Variants = {
 };
 
 function App() {
-  // Navigation State: 'landing' or 'console'
-  const [viewMode, setViewMode] = useState<'landing' | 'console'>('landing');
+  // Navigation State: 'landing' or 'console' or 'guide'
+  const [viewMode, setViewMode] = useState<'landing' | 'console' | 'guide'>('landing');
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
 
   // Connection and Workspace States
@@ -1022,6 +1022,7 @@ function App() {
               <div className="footer-links-col" style={{ gridColumn: 'span 2' }}>
                 <h5 className="footer-col-header">Resources</h5>
                 <ul className="footer-links-list">
+                  <li><button onClick={() => setViewMode('guide')} style={{ background: 'none', border: 'none', padding: 0, color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', textAlign: 'left', display: 'block', outline: 'none' }} className="footer-link-btn">Platform User Guide</button></li>
                   <li><a href="#vscode">VS Code Plugin</a></li>
                   <li><a href="#api">Local REST API</a></li>
                   <li><a href="#docs">Developer SDKs</a></li>
@@ -2073,9 +2074,16 @@ function App() {
           {/* Footer */}
           <footer className="saas-footer-crisp">
             <p>© 2026 PolyTest AI REST Platform. Enterprise Edition.</p>
-            <p className="footer-subtitle-crisp">
+            <p className="footer-subtitle-crisp" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
               <Binary className="w-3.5 h-3.5" />
               TypeScript Backend + React Frontend Architecture
+              <span style={{ color: 'rgba(255,255,255,0.08)' }}>|</span>
+              <button 
+                onClick={() => setViewMode('guide')}
+                style={{ background: 'none', border: 'none', color: 'var(--accent-cyan)', fontFamily: 'var(--font-mono)', fontSize: '9px', cursor: 'pointer', padding: 0, textDecoration: 'underline', outline: 'none' }}
+              >
+                USER GUIDE MANUAL
+              </button>
             </p>
           </footer>
 
@@ -2088,6 +2096,115 @@ function App() {
               </linearGradient>
             </defs>
           </svg>
+
+          </motion.div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* VIEW MODE 3: COMPREHENSIVE DEVELOPER USER GUIDE */}
+        {/* ========================================================================= */}
+        {viewMode === 'guide' && (
+          <motion.div 
+            key="guide-view"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            style={{ width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'radial-gradient(circle at 50% 0%, #0c0f1d 0%, #030712 100%)', padding: '40px 20px', boxSizing: 'border-box' }}
+          >
+            {/* Header / Nav */}
+            <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '20px', marginBottom: '30px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Activity className="w-5 h-5 text-purple-400 animate-pulse" />
+                <span style={{ fontSize: '14px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#fff', letterSpacing: '-0.02em' }}>PolyTest AI Manual</span>
+              </div>
+              <button 
+                onClick={() => setViewMode('landing')}
+                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '6px', color: '#fff', padding: '6px 14px', fontSize: '11px', fontFamily: 'var(--font-mono)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                Return Home
+              </button>
+            </div>
+
+            {/* Guide Content */}
+            <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%', background: 'rgba(3, 7, 18, 0.4)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '40px', boxSizing: 'border-box', textAlign: 'left' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', background: 'rgba(0, 245, 255, 0.05)', color: 'var(--accent-cyan)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(0, 245, 255, 0.12)' }}>
+                OFFICIAL SYSTEM MANUAL
+              </span>
+              
+              <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#fff', marginTop: '16px', marginBottom: '8px', letterSpacing: '-0.03em' }}>
+                Polytest AI Rest Engine Guide
+              </h1>
+              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '32px' }}>
+                A highly comprehensive, premium operations manual for engineering teams building test suites with the Polytest AI local sandbox and compiler analysis framework.
+              </p>
+
+              {/* Grid sections */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+                
+                {/* Sec 1 */}
+                <div style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '20px' }}>
+                  <h3 style={{ fontSize: '14px', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 10px 0' }}>
+                    01. AST STRUCTURAL ANALYSIS
+                  </h3>
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6', margin: 0 }}>
+                    The Double-Column AST Class Explorer visualizes your target module classes, static methods, imports, and variables. Selecting any class method triggers the Token Inspector sidebar, providing instant access to parameter counts, accessibility parameters, async states, and recommended code coverage test mocks.
+                  </p>
+                </div>
+
+                {/* Sec 2 */}
+                <div style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '20px' }}>
+                  <h3 style={{ fontSize: '14px', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 10px 0' }}>
+                    02. DRYCOMPILE LINTER
+                  </h3>
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6', margin: 0 }}>
+                    The Subprocess Linter executes compile-time dryruns using target languages (e.g. `node --check`, `javac -Xlint`, `gcc -fsyntax-only`). Active warnings are captured inside the warning table registry with designated quick-remedies for instant code adjustment.
+                  </p>
+                </div>
+
+                {/* Sec 3 */}
+                <div style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '20px' }}>
+                  <h3 style={{ fontSize: '14px', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 10px 0' }}>
+                    03. SUBPROCESS SUBRUNNER TELEMETRY
+                  </h3>
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6', margin: 0 }}>
+                    Subrunner tracks terminal stdout streams, sandboxed process IDs (PID), memory consumption, and thread execution timers. Swapping between Logs, Metrics, and Diagnostics updates real-time telemetry from active test generation suites.
+                  </p>
+                </div>
+
+                {/* Sec 4 */}
+                <div style={{ paddingBottom: '10px' }}>
+                  <h3 style={{ fontSize: '14px', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 10px 0' }}>
+                    04. CRYPTOGRAPHIC PROMPT CACHING
+                  </h3>
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6', margin: 0 }}>
+                    Active prompt caching calculates MD5 checksum signatures derived from prompt configurations, source files, and LLM arguments. If identical file versions are scanned, Polytest AI instantly pulls test logs from the local `.cache` folder, bypassing API token calls and delivering a 15ms compile-time.
+                  </p>
+                </div>
+
+              </div>
+
+              {/* CTA */}
+              <div style={{ marginTop: '40px', padding: '20px', background: 'rgba(0, 245, 255, 0.02)', border: '1px solid rgba(0, 245, 255, 0.08)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <h4 style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: '#fff', margin: 0 }}>Ready to validate your code sandbox?</h4>
+                  <p style={{ fontSize: '10px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>Launch the developer workspace directly from the console dashboard.</p>
+                </div>
+                <button 
+                  onClick={() => setViewMode('console')}
+                  style={{ background: 'linear-gradient(135deg, var(--accent-cyan), var(--accent-purple))', border: 'none', borderRadius: '6px', color: '#fff', padding: '8px 18px', fontSize: '11px', fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-mono)' }}
+                >
+                  Launch Console
+                </button>
+              </div>
+
+            </div>
+
+            {/* Footer */}
+            <div style={{ marginTop: '40px', fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+              © 2026 PolyTest AI REST Platform. All rights reserved.
+            </div>
 
           </motion.div>
         )}
