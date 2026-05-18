@@ -1,0 +1,48 @@
+{
+  "name": "polytest-vscode",
+  "displayName": "PolyTest AI",
+  "description": "AI-powered multi-language unit test suite generator",
+  "version": "1.0.0",
+  "publisher": "polytest",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Testing",
+    "Linters",
+    "Formatters"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "polytest.generate",
+        "title": "PolyTest AI: Generate Unit Tests"
+      },
+      {
+        "command": "polytest.analyze",
+        "title": "PolyTest AI: Analyze Code Structure"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "polytest.generate",
+          "group": "navigation",
+          "when": "editorTextFocus"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.4.5"
+  }
+}
