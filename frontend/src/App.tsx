@@ -317,6 +317,7 @@ function App() {
 
   // Double Tab Canvas state: 'inspector' or 'code'
   const [canvasTab, setCanvasTab] = useState<'inspector' | 'code'>('inspector');
+  const [activeNode, setActiveNode] = useState<string | null>(null);
 
   // Parameters presets
   const [selectedPreset, setSelectedPreset] = useState<'standard' | 'robust' | 'fast'>('standard');
@@ -445,6 +446,7 @@ function App() {
   // 3. Analyze Target Code file
   const handleFileSelect = async (file: FileItem) => {
     setSelectedFile(file);
+    setActiveNode(null);
     setIsLoadingAnalysis(true);
     setTerminalLogs(prev => [...prev, `📂 Loading AST structural patterns: ${file.file_path}`]);
 
@@ -1294,15 +1296,20 @@ function App() {
                 
                 {/* 1. Inspector Canvas Mode */}
                 {canvasTab === 'inspector' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                    <div className="canvas-header">
+                  <div style={{ display: 'flex', flexDirection: 'column', flex: 1, height: '100%' }}>
+                    
+                    {/* Header bar */}
+                    <div className="canvas-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', marginBottom: '16px' }}>
                       <div style={{ textAlign: 'left' }}>
-                        <span className="mono-label">AST Parser Class Nodes</span>
+                        <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <Binary className="w-3.5 h-3.5 text-cyan-400" />
+                          AST Structural Parser
+                        </span>
                         <h2 style={{ fontSize: '13px', fontWeight: 600, fontFamily: 'var(--font-mono)', color: '#fff', marginTop: '4px' }}>
-                          class {parsedStructure?.classes?.[0]?.name || 'SourceModule'}
+                          module: {selectedFile?.file_path.split('/').pop() || 'None'}
                         </h2>
                       </div>
-                      <div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
                         <span style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', background: 'rgba(0, 245, 255, 0.05)', border: '1px solid rgba(0,245,255,0.15)', color: 'var(--accent-cyan)', padding: '2px 8px', borderRadius: '4px' }}>
                           Complexity: {parsedStructure?.complexity || 'Low'}
                         </span>
@@ -1315,59 +1322,189 @@ function App() {
                         <p style={{ fontSize: '11px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>Statically profiling AST nodes...</p>
                       </div>
                     ) : parsedStructure ? (
-                      <div className="ast-inspected-card-container">
+                      <div className="ast-layout-split-columns" style={{ display: 'flex', gap: '16px', flex: 1, minHeight: 0 }}>
                         
-                        {/* Class methods */}
-                        {parsedStructure.classes.map((cls) => 
-                          cls.methods.map((method, idx) => {
-                            const isSelected = selectedMethods.includes(method.name);
-                            return (
-                              <div
-                                key={idx}
-                                onClick={() => toggleMethod(method.name)}
-                                className={`ast-method-block ${isSelected ? 'selected' : ''}`}
-                              >
-                                <div className="ast-method-signature">
-                                  <span className="ast-method-name">
-                                    {method.name}<span style={{ color: 'var(--text-muted)' }}>()</span>
+                        {/* LEFT COLUMN: AST Class & Method Tree explorer */}
+                        <div className="ast-tree-column" style={{ flex: 1.2, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', paddingRight: '4px' }}>
+                          
+                          {/* Module global Imports badge box */}
+                          {parsedStructure.imports && parsedStructure.imports.length > 0 && (
+                            <div className="ast-imports-summary-panel">
+                              <span className="mono-label" style={{ fontSize: '8px', marginBottom: '6px', display: 'block', color: 'var(--text-muted)' }}>GLOBAL IMPORT DEPENDENCIES</span>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                {parsedStructure.imports.map((imp, idx) => (
+                                  <span key={idx} className="ast-import-tag">
+                                    {imp}
                                   </span>
-                                  <span className="ast-method-args">
-                                    {method.args}
-                                  </span>
-                                </div>
-
-                                <div className={`ast-checkbox-indicator ${isSelected ? 'checked' : ''}`}>
-                                  {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
-                                </div>
-                              </div>
-                            );
-                          })
-                        )}
-
-                        {/* Functions */}
-                        {parsedStructure.functions.map((func, idx) => {
-                          const isSelected = selectedMethods.includes(func.name);
-                          return (
-                            <div
-                              key={idx}
-                              onClick={() => toggleMethod(func.name)}
-                              className={`ast-method-block ${isSelected ? 'selected' : ''}`}
-                            >
-                              <div className="ast-method-signature">
-                                <span className="ast-method-name">
-                                  {func.name}<span style={{ color: 'var(--text-muted)' }}>()</span>
-                                </span>
-                                  <span className="ast-method-args">
-                                    {func.args}
-                                  </span>
-                              </div>
-
-                              <div className={`ast-checkbox-indicator ${isSelected ? 'checked' : ''}`}>
-                                {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                                ))}
                               </div>
                             </div>
-                          );
-                        })}
+                          )}
+
+                          {/* Class declarations */}
+                          {parsedStructure.classes.map((cls, classIdx) => (
+                            <div key={classIdx} className="ast-class-node-group">
+                              <div className="ast-class-header-row">
+                                <Code className="w-3.5 h-3.5 text-cyan-400" />
+                                <span className="ast-class-keyword">class</span>
+                                <span className="ast-class-name-label">{cls.name}</span>
+                              </div>
+
+                              <div className="ast-class-children-methods" style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginLeft: '12px', borderLeft: '1px solid rgba(255,255,255,0.04)', paddingLeft: '12px', marginTop: '6px' }}>
+                                {cls.methods.map((method, methodIdx) => {
+                                  const isSelected = selectedMethods.includes(method.name);
+                                  const isFocused = activeNode === method.name;
+                                  return (
+                                    <motion.div
+                                      key={methodIdx}
+                                      onClick={() => {
+                                        toggleMethod(method.name);
+                                        setActiveNode(method.name);
+                                      }}
+                                      whileHover={{ scale: 1.01, x: 2 }}
+                                      whileTap={{ scale: 0.99 }}
+                                      className={`ast-node-card-block ${isSelected ? 'selected' : ''} ${isFocused ? 'focused' : ''}`}
+                                    >
+                                      <div className="ast-node-card-left">
+                                        <div className={`ast-node-checkbox ${isSelected ? 'checked' : ''}`}>
+                                          {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                                        </div>
+                                        <div className="ast-node-tag-indicators">
+                                          <span className="ast-node-modifier">public</span>
+                                          <span className="ast-node-name-text">{method.name}()</span>
+                                        </div>
+                                      </div>
+                                      <div className="ast-node-card-right">
+                                        <span className="ast-node-type-label">method</span>
+                                      </div>
+                                    </motion.div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ))}
+
+                          {/* Isolated Function declarations (if any) */}
+                          {parsedStructure.functions && parsedStructure.functions.length > 0 && (
+                            <div className="ast-class-node-group" style={{ marginTop: '8px' }}>
+                              <div className="ast-class-header-row">
+                                <Layers className="w-3.5 h-3.5 text-purple-400" />
+                                <span className="ast-class-keyword" style={{ color: 'var(--accent-purple)' }}>module</span>
+                                <span className="ast-class-name-label" style={{ color: 'var(--text-muted)' }}>functions</span>
+                              </div>
+
+                              <div className="ast-class-children-methods" style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginLeft: '12px', borderLeft: '1px solid rgba(255,255,255,0.04)', paddingLeft: '12px', marginTop: '6px' }}>
+                                {parsedStructure.functions.map((func, funcIdx) => {
+                                  const isSelected = selectedMethods.includes(func.name);
+                                  const isFocused = activeNode === func.name;
+                                  return (
+                                    <motion.div
+                                      key={funcIdx}
+                                      onClick={() => {
+                                        toggleMethod(func.name);
+                                        setActiveNode(func.name);
+                                      }}
+                                      whileHover={{ scale: 1.01, x: 2 }}
+                                      whileTap={{ scale: 0.99 }}
+                                      className={`ast-node-card-block ${isSelected ? 'selected' : ''} ${isFocused ? 'focused' : ''}`}
+                                    >
+                                      <div className="ast-node-card-left">
+                                        <div className={`ast-node-checkbox ${isSelected ? 'checked' : ''}`}>
+                                          {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                                        </div>
+                                        <div className="ast-node-tag-indicators">
+                                          <span className="ast-node-modifier" style={{ color: 'var(--accent-purple)', background: 'rgba(140,82,255,0.05)' }}>export</span>
+                                          <span className="ast-node-name-text">{func.name}()</span>
+                                        </div>
+                                      </div>
+                                      <div className="ast-node-card-right">
+                                        <span className="ast-node-type-label" style={{ color: 'var(--accent-purple)' }}>func</span>
+                                      </div>
+                                    </motion.div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                        </div>
+
+                        {/* RIGHT COLUMN: Holographic Token Debug Inspector */}
+                        <div className="ast-inspector-sidebar" style={{ flex: 0.9, display: 'flex', flexDirection: 'column', background: 'rgba(3,7,18,0.3)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px', overflowY: 'auto' }}>
+                          
+                          {activeNode ? (() => {
+                            // Find args details for active method/function
+                            let matchedArgs = '';
+                            
+                            parsedStructure.classes.forEach(c => {
+                              const found = c.methods.find(m => m.name === activeNode);
+                              if (found) {
+                                matchedArgs = found.args;
+                              }
+                            });
+                            
+                            if (!matchedArgs && parsedStructure.functions) {
+                              const foundFunc = parsedStructure.functions.find(f => f.name === activeNode);
+                              if (foundFunc) {
+                                matchedArgs = foundFunc.args;
+                              }
+                            }
+
+                            return (
+                              <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '14px', height: '100%' }}>
+                                
+                                <div>
+                                  <span className="mono-label" style={{ color: 'var(--accent-cyan)', fontSize: '8px' }}>NODE TOKEN INSPECTOR</span>
+                                  <h3 style={{ fontSize: '14px', fontFamily: 'var(--font-mono)', fontWeight: 600, color: '#fff', marginTop: '4px' }}>
+                                    {activeNode}()
+                                  </h3>
+                                </div>
+
+                                <div className="hud-metric-row-small" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '10px' }}>
+                                  <div className="hud-metric-label">Access Scope:</div>
+                                  <div className="hud-metric-value" style={{ color: 'var(--accent-green)', fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 600 }}>PUBLIC</div>
+                                </div>
+
+                                <div className="hud-metric-row-small" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '10px' }}>
+                                  <div className="hud-metric-label">Async context:</div>
+                                  <div className="hud-metric-value" style={{ color: 'var(--accent-cyan)', fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 600 }}>
+                                    {matchedArgs.includes('Promise') || matchedArgs.includes('chan') ? 'TRUE' : 'FALSE'}
+                                  </div>
+                                </div>
+
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                  <span className="mono-label" style={{ fontSize: '8px', color: 'var(--text-muted)' }}>ARGUMENTS & RETURN SIGNATURE</span>
+                                  <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '10px', borderRadius: '6px', fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--accent-cyan)', overflowX: 'auto', whiteSpace: 'nowrap' }}>
+                                    {matchedArgs}
+                                  </div>
+                                </div>
+
+                                <div style={{ marginTop: 'auto', background: 'rgba(0, 245, 255, 0.02)', border: '1px solid rgba(0, 245, 255, 0.08)', padding: '10px', borderRadius: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                  <span className="mono-label" style={{ fontSize: '8px', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <Activity className="w-3 h-3 animate-pulse" />
+                                    TEST SUITE GENERATION TARGET
+                                  </span>
+                                  <p style={{ fontSize: '10px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                                    Selecting this node generates isolated mock test classes covering boundary ranges and argument types.
+                                  </p>
+                                </div>
+
+                              </div>
+                            );
+                          })() : (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '10px', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                              <Sliders className="w-5 h-5 text-cyan-400 opacity-60" style={{ animation: 'bounce 2s infinite' }} />
+                              <div>
+                                <h4 style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: '#fff' }}>Token Inspector Idle</h4>
+                                <p style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '4px', maxWidth: '160px', marginLeft: 'auto', marginRight: 'auto', lineHeight: '1.4' }}>
+                                  Click any class method in the left panel to inspect detailed compilation tokens!
+                                </p>
+                              </div>
+                            </div>
+                          )}
+
+                        </div>
+
                       </div>
                     ) : (
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>

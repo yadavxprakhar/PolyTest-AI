@@ -979,63 +979,131 @@ p {
   padding-right: 2px;
 }
 
-.ast-method-block {
-  background: rgba(255, 255, 255, 0.01);
+/* Holographic AST Double column elements */
+.ast-imports-summary-panel {
+  background: rgba(255,255,255,0.01);
   border: 1px solid var(--border-color);
+  padding: 12px;
   border-radius: 8px;
-  padding: 14px 18px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.ast-method-block:hover {
-  background: rgba(255, 255, 255, 0.02);
-  border-color: var(--border-hover);
-}
-
-.ast-method-block.selected {
-  border-color: var(--accent-cyan);
-  background: rgba(0, 245, 255, 0.01);
-}
-
-.ast-method-signature {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
   text-align: left;
 }
 
-.ast-method-name {
+.ast-import-tag {
   font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.ast-method-args {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-muted);
-}
-
-.ast-checkbox-indicator {
-  width: 16px;
-  height: 16px;
+  font-size: 9px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: var(--text-secondary);
+  padding: 2px 6px;
   border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ast-class-node-group {
+  background: rgba(255,255,255,0.01);
+  border: 1px solid var(--border-color);
+  padding: 12px;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.ast-class-header-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.ast-class-keyword {
+  color: var(--accent-cyan);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 9px;
+  letter-spacing: 0.05em;
+}
+
+.ast-class-name-label {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.ast-node-card-block {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255,255,255,0.01);
+  border: 1px solid rgba(255,255,255,0.03);
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ast-node-card-block:hover {
+  border-color: rgba(0, 245, 255, 0.15);
+  background: rgba(0, 245, 255, 0.02);
+}
+
+.ast-node-card-block.focused {
+  border-color: rgba(0, 245, 255, 0.3);
+  background: rgba(0, 245, 255, 0.04);
+}
+
+.ast-node-card-block.selected {
+  border-color: rgba(0, 245, 255, 0.12);
+}
+
+.ast-node-card-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ast-node-checkbox {
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  border: 1px solid rgba(255,255,255,0.15);
   display: flex;
   align-items: center;
   justify-content: center;
+  background: transparent;
   transition: all 0.15s ease;
 }
 
-.ast-checkbox-indicator.checked {
+.ast-node-checkbox.checked {
   background: var(--accent-cyan);
   border-color: var(--accent-cyan);
   color: #030712;
+}
+
+.ast-node-tag-indicators {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ast-node-modifier {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  background: rgba(0, 245, 255, 0.05);
+  color: var(--accent-cyan);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.ast-node-name-text {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-primary);
+}
+
+.ast-node-type-label {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* 3. Controls Right Sidebar panel & Gauge widgets */
