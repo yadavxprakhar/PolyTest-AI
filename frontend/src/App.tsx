@@ -717,15 +717,53 @@ function App() {
               </div>
             </div>
 
-            {/* Embedded high-resolution illustration banner */}
+            {/* Interactive 3D Conceptual Code Compiler Sphere */}
             <div className="hero-right-visual">
-              <div className="hero-visual-frame-crisp">
-                <img 
-                  src="/polytest_saas_hero.png" 
-                  alt="PolyTest AI Core Compiler Sphere illustration"
-                  className="hero-visual-image"
-                  style={{ borderRadius: '12px' }}
-                />
+              <div className="compiler-3d-container">
+                <div className="viewport-3d">
+                  
+                  {/* Floating Holographic telemetry indicators */}
+                  <span className="telemetry-tag t-1">[SYS_ACTIVE]</span>
+                  <span className="telemetry-tag t-2">[LINT_SECURE]</span>
+
+                  {/* 3D Floating Glassmorphic Code Panels */}
+                  <div className="hologram-panel pos-tl">
+                    <span style={{ color: 'var(--accent-cyan)' }}>class UserAuth {"{"}</span>
+                    <span style={{ color: 'var(--text-muted)', paddingLeft: '8px' }}>login(creds) {"{"}</span>
+                    <span style={{ color: 'var(--accent-green)', paddingLeft: '16px' }}>return token;</span>
+                    <span style={{ color: 'var(--text-muted)', paddingLeft: '8px' }}>{"}"}</span>
+                    <span style={{ color: 'var(--accent-cyan)' }}>{"}"}</span>
+                  </div>
+
+                  <div className="hologram-panel pos-tr">
+                    <span style={{ color: 'var(--accent-purple)' }}>import {"{"} stripe {"}"}</span>
+                    <span style={{ color: 'var(--text-secondary)' }}>payment.initialize()</span>
+                    <span style={{ color: 'var(--accent-green)' }}>✓ AST parsed 100%</span>
+                  </div>
+
+                  <div className="hologram-panel pos-bl">
+                    <span style={{ color: 'var(--accent-red)' }}>#include &lt;gtest&gt;</span>
+                    <span style={{ color: '#fff' }}>TEST_F(LoadsBuffers)</span>
+                    <span style={{ color: 'var(--accent-green)' }}>✓ GTest Ok</span>
+                  </div>
+
+                  <div className="hologram-panel pos-br">
+                    <span style={{ color: 'var(--accent-cyan)' }}>package main</span>
+                    <span style={{ color: 'var(--text-secondary)' }}>go test -v ./...</span>
+                    <span style={{ color: 'var(--accent-green)' }}>✓ 100% Cov</span>
+                  </div>
+
+                  {/* Pulsating energy core sphere */}
+                  <div className="pulse-core" />
+
+                  {/* Orthogonal spinning 3D rings */}
+                  <div className="sphere-3d-core">
+                    <div className="ring-3d axis-x" />
+                    <div className="ring-3d axis-y" />
+                    <div className="ring-3d axis-z" />
+                  </div>
+
+                </div>
               </div>
             </div>
           </header>
