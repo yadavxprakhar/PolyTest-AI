@@ -33,7 +33,9 @@ import {
   Bug,
   Blocks,
   CircleUser,
-  Home
+  Home,
+  X,
+  MoreHorizontal
 } from 'lucide-react';
 
 
@@ -947,6 +949,19 @@ function Console() {
   const [projectRoot, setProjectRoot] = useState<string>('/Users/prakhar/Projects/Polytest AI ');
   const [files, setFiles] = useState<FileItem[]>(SANDBOX_FILES);
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(SANDBOX_FILES[1]); // PaymentService.ts
+  const [openEditors, setOpenEditors] = useState<FileItem[]>([SANDBOX_FILES[1]]);
+  const [explorerMenuOpen, setExplorerMenuOpen] = useState(false);
+
+  const handleCloseEditor = (e: React.MouseEvent, fileToClose: FileItem) => {
+    e.stopPropagation();
+    setOpenEditors(prev => {
+      const newEditors = prev.filter(f => f.file_path !== fileToClose.file_path);
+      if (selectedFile?.file_path === fileToClose.file_path) {
+        setSelectedFile(newEditors.length > 0 ? newEditors[newEditors.length - 1] : null);
+      }
+      return newEditors;
+    });
+  };
   const [collapsedFolders, setCollapsedFolders] = useState<Record<string, boolean>>({
     'quantum-core-v2': false,
     'quantum-core-v2/src': false,
@@ -1324,6 +1339,12 @@ function Console() {
   // 3. Analyze Target Code file
   const handleFileSelect = async (file: FileItem) => {
     setSelectedFile(file);
+    setOpenEditors(prev => {
+      if (!prev.find(f => f.file_path === file.file_path)) {
+        return [...prev, file];
+      }
+      return prev;
+    });
     setActiveNode(null);
     setIsLoadingAnalysis(true);
     setTerminalLogs(prev => [...prev, `📂 Loading AST structural patterns: ${file.file_path}`]);
@@ -2222,15 +2243,44 @@ function Console() {
                 <span className="sidebar-brand-title">PolyTest-AI</span>
               </div>
 
-              <div className="sidebar-search-wrapper">
-                <Search className="w-3.5 h-3.5 sidebar-search-icon" />
-                <input 
-                  type="text" 
-                  placeholder="Search files..." 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="sidebar-search-input"
-                />
+              <div className="sidebar-search-wrapper" style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+                <div style={{ position: 'relative', flex: 1, display: 'flex', alignItems: 'center' }}>
+                  <Search className="w-3.5 h-3.5 sidebar-search-icon" />
+                  <input 
+                    type="text" 
+                    placeholder="Search files..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="sidebar-search-input"
+                  />
+                </div>
+                <div style={{ position: 'relative', marginLeft: '8px' }}>
+                  <MoreHorizontal 
+                    className="w-4 h-4 text-gray-400" 
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => setExplorerMenuOpen(!explorerMenuOpen)}
+                  />
+                  {explorerMenuOpen && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      right: 0,
+                      marginTop: '4px',
+                      background: '#1e1e1e',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: '4px',
+                      padding: '4px',
+                      zIndex: 100,
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                      minWidth: '120px'
+                    }}>
+                      <div className="context-menu-item" style={{ padding: '6px 12px', fontSize: '12px', color: '#ccc', cursor: 'pointer', borderRadius: '2px' }} onClick={() => setExplorerMenuOpen(false)}>Open Editors</div>
+                      <div className="context-menu-item" style={{ padding: '6px 12px', fontSize: '12px', color: '#ccc', cursor: 'pointer', borderRadius: '2px' }} onClick={() => setExplorerMenuOpen(false)}>Folder</div>
+                      <div className="context-menu-item" style={{ padding: '6px 12px', fontSize: '12px', color: '#ccc', cursor: 'pointer', borderRadius: '2px' }} onClick={() => setExplorerMenuOpen(false)}>Project</div>
+                      <div className="context-menu-item" style={{ padding: '6px 12px', fontSize: '12px', color: '#ccc', cursor: 'pointer', borderRadius: '2px' }} onClick={() => setExplorerMenuOpen(false)}>Builds</div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="flex-row-align" style={{ justifyContent: 'space-between', width: '100%', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px', paddingLeft: '4px', paddingRight: '4px' }}>
@@ -2412,28 +2462,38 @@ function Console() {
               }}>
                 
                 {/* Document tabs */}
-                <div className="editor-tabs-bar" style={{ display: 'flex', gap: '2px', height: '100%', alignItems: 'flex-end' }}>
-                  <div 
-                    className={`editor-tab-item active`} 
-                    style={{ 
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '6px 12px',
-                      fontSize: '11px',
-                      fontFamily: 'var(--font-mono)',
-                      color: 'var(--text-primary)',
-                      background: '#08090c',
-                      borderRight: '1px solid rgba(255,255,255,0.05)',
-                      borderTop: '2px solid var(--accent-cyan)',
-                      height: '100%',
-                      boxSizing: 'border-box',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <FileCode className="w-3.5 h-3.5 text-cyan-400" />
-                    <span>{selectedFile ? selectedFile.file_path.split('/').pop() : 'PaymentService.ts'}</span>
-                  </div>
+                <div className="editor-tabs-bar" style={{ display: 'flex', gap: '2px', height: '100%', alignItems: 'flex-end', overflowX: 'auto', maxWidth: 'calc(100vw - 400px)' }}>
+                  {openEditors.map((file) => (
+                    <div 
+                      key={file.file_path}
+                      onClick={() => setSelectedFile(file)}
+                      className={`editor-tab-item ${selectedFile?.file_path === file.file_path ? 'active' : ''}`} 
+                      style={{ 
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '6px 12px',
+                        fontSize: '11px',
+                        fontFamily: 'var(--font-mono)',
+                        color: selectedFile?.file_path === file.file_path ? 'var(--text-primary)' : 'var(--text-secondary)',
+                        background: selectedFile?.file_path === file.file_path ? '#08090c' : 'rgba(255,255,255,0.02)',
+                        borderRight: '1px solid rgba(255,255,255,0.05)',
+                        borderTop: selectedFile?.file_path === file.file_path ? '2px solid var(--accent-cyan)' : '2px solid transparent',
+                        height: '100%',
+                        boxSizing: 'border-box',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      <FileCode className={`w-3.5 h-3.5 ${selectedFile?.file_path === file.file_path ? 'text-cyan-400' : 'text-gray-500'}`} />
+                      <span>{file.file_path.split('/').pop()}</span>
+                      <X 
+                        className="w-3.5 h-3.5" 
+                        style={{ marginLeft: '4px', cursor: 'pointer', opacity: 0.6 }} 
+                        onClick={(e) => handleCloseEditor(e, file)}
+                      />
+                    </div>
+                  ))}
                 </div>
 
                 {/* Workspace display toggle canvas tabs & Layout resize actions */}
