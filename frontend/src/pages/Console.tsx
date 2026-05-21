@@ -2271,8 +2271,7 @@ function Console() {
                       boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
                       minWidth: '120px'
                     }}>
-                      <div className="context-menu-item" style={{ padding: '6px 12px', fontSize: '12px', color: '#ccc', cursor: 'pointer', borderRadius: '2px' }} onClick={() => { setExplorerView('openEditors'); setExplorerMenuOpen(false); }}>Open Editors</div>
-                      <div className="context-menu-item" style={{ padding: '6px 12px', fontSize: '12px', color: '#ccc', cursor: 'pointer', borderRadius: '2px' }} onClick={() => { setExplorerView('folder'); setExplorerMenuOpen(false); }}>Folder</div>
+                      <div className="context-menu-item" style={{ padding: '6px 12px', fontSize: '12px', color: '#ccc', cursor: 'pointer', borderRadius: '2px' }} onClick={() => { setExplorerView('folder'); setExplorerMenuOpen(false); }}>Explorer</div>
                       <div className="context-menu-item" style={{ padding: '6px 12px', fontSize: '12px', color: '#ccc', cursor: 'pointer', borderRadius: '2px' }} onClick={() => { setExplorerView('project'); setExplorerMenuOpen(false); }}>Project</div>
                       <div className="context-menu-item" style={{ padding: '6px 12px', fontSize: '12px', color: '#ccc', cursor: 'pointer', borderRadius: '2px' }} onClick={() => { setExplorerView('builds'); setExplorerMenuOpen(false); }}>Builds</div>
                     </div>
@@ -2282,10 +2281,58 @@ function Console() {
 
               {explorerView === 'folder' && (
                 <>
-                  <div className="flex-row-align" style={{ justifyContent: 'space-between', width: '100%', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px', paddingLeft: '4px', paddingRight: '4px' }}>
+                  {/* OPEN EDITORS SECTION */}
+                  <div className="flex-row-align" style={{ justifyContent: 'space-between', width: '100%', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '4px', paddingTop: '4px', paddingLeft: '4px', paddingRight: '4px' }}>
+                    <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <FileCode className="w-3.5 h-3.5 text-cyan-400" />
+                      Open Editors
+                    </span>
+                  </div>
+                  <div style={{ padding: '2px 4px', display: 'flex', flexDirection: 'column', gap: '0', overflowY: 'auto', maxHeight: '150px' }}>
+                    {openEditors.map(file => (
+                      <div 
+                        key={file.file_path}
+                        onClick={() => setSelectedFile(file)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '4px 6px',
+                          fontSize: '11px',
+                          fontFamily: 'var(--font-sans)',
+                          color: selectedFile?.file_path === file.file_path ? '#ffffff' : 'var(--text-secondary)',
+                          background: selectedFile?.file_path === file.file_path ? 'rgba(55, 148, 255, 0.15)' : 'transparent',
+                          borderLeft: selectedFile?.file_path === file.file_path ? '2px solid var(--accent-cyan)' : '2px solid transparent',
+                          cursor: 'pointer',
+                          borderRadius: '3px',
+                          margin: '1px 0'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <FileCode className="w-3 h-3 text-cyan-400" />
+                          <span>{file.file_path.split('/').pop()}</span>
+                        </div>
+                        <X 
+                          className="w-3 h-3" 
+                          style={{ cursor: 'pointer', opacity: 0.6 }} 
+                          onClick={(e) => handleCloseEditor(e, file)}
+                          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.6'}
+                        />
+                      </div>
+                    ))}
+                    {openEditors.length === 0 && (
+                      <div style={{ padding: '12px', fontSize: '11px', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                        No editors open
+                      </div>
+                    )}
+                  </div>
+
+                  {/* EXPLORER SECTION */}
+                  <div className="flex-row-align" style={{ justifyContent: 'space-between', width: '100%', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '4px', paddingTop: '8px', paddingLeft: '4px', paddingRight: '4px' }}>
                     <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <FolderOpen className="w-3.5 h-3.5 text-cyan-400" />
-                      Files Explorer
+                      Explorer
                     </span>
                     
                     <div style={{ display: 'flex', gap: files.length > 0 ? '4px' : '10px', alignItems: 'center' }}>
@@ -2365,7 +2412,7 @@ function Console() {
                   </div>
     
                   {/* Directory Tree */}
-                  <div className="file-tree-container" style={{ width: '100%', overflowY: 'auto', maxHeight: '350px', paddingRight: '4px' }}>
+                  <div className="file-tree-container" style={{ width: '100%', overflowY: 'auto', maxHeight: '200px', paddingRight: '4px' }}>
                     {(() => {
                       const filteredFiles = files.filter(file => 
                         file.file_path.toLowerCase().includes(searchQuery.toLowerCase())
@@ -2373,54 +2420,6 @@ function Console() {
                       const treeRoot = buildFileTree(filteredFiles);
                       return renderTreeNode(treeRoot);
                     })()}
-                  </div>
-                </>
-              )}
-
-              {explorerView === 'openEditors' && (
-                <>
-                  <div className="flex-row-align" style={{ justifyContent: 'space-between', width: '100%', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px', paddingLeft: '4px', paddingRight: '4px' }}>
-                    <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <FileCode className="w-3.5 h-3.5 text-cyan-400" />
-                      Open Editors
-                    </span>
-                  </div>
-                  <div style={{ padding: '8px 4px', display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto', maxHeight: '350px' }}>
-                    {openEditors.map(file => (
-                      <div 
-                        key={file.file_path}
-                        onClick={() => setSelectedFile(file)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '6px 8px',
-                          fontSize: '11px',
-                          fontFamily: 'var(--font-mono)',
-                          color: selectedFile?.file_path === file.file_path ? 'var(--accent-cyan)' : 'var(--text-secondary)',
-                          background: selectedFile?.file_path === file.file_path ? 'rgba(55,148,255,0.1)' : 'transparent',
-                          cursor: 'pointer',
-                          borderRadius: '4px'
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <FileCode className="w-3.5 h-3.5" />
-                          <span>{file.file_path.split('/').pop()}</span>
-                        </div>
-                        <X 
-                          className="w-3 h-3" 
-                          style={{ cursor: 'pointer', opacity: 0.6 }} 
-                          onClick={(e) => handleCloseEditor(e, file)}
-                          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-                          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.6'}
-                        />
-                      </div>
-                    ))}
-                    {openEditors.length === 0 && (
-                      <div style={{ padding: '12px', fontSize: '11px', color: 'var(--text-secondary)', textAlign: 'center' }}>
-                        No editors open
-                      </div>
-                    )}
                   </div>
                 </>
               )}
