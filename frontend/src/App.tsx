@@ -1430,10 +1430,10 @@ function App() {
           <nav className={`saas-nav-block ${isScrolled ? 'scrolled' : ''}`}>
             <div className="landing-inner-wrap">
               <div className="flex-row-align">
-                <div className="brand-icon-box">
-                  <Cpu className="w-5 h-5 text-cyan-400" />
+                <div className="brand-icon-box" style={{ borderColor: 'var(--border-color)', background: 'transparent' }}>
+                  <Cpu className="w-5 h-5 text-blue-500" style={{ color: 'var(--accent-cyan)' }} />
                 </div>
-                <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-cyan-400 via-[#8c52ff] to-purple-400 bg-clip-text text-transparent">PolyTest AI</h1>
+                <h1 className="text-xl font-bold tracking-tight text-white">PolyTest AI</h1>
               </div>
 
               <div className="saas-nav-links">
@@ -1794,9 +1794,6 @@ function App() {
           </motion.div>
         )}
 
-        {/* ========================================================================= */}
-        {/* VIEW MODE 2: INTERACTIVE DEVELOPER DASHBOARD CONSOLE */}
-        {/* ========================================================================= */}
         {viewMode === 'console' && (
           <motion.div 
             key="console-view"
@@ -1805,38 +1802,35 @@ function App() {
             exit={{ opacity: 0, y: -15, scale: 0.98 }}
             transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
           >
-            
             {/* Header HUD Navigation */}
             <header className="console-hud-bar">
-            
-            {/* Brand logo & workspace returns */}
-            <div className="console-hud-left">
-              <button 
-                onClick={() => setViewMode('landing')}
-                className="crisp-button-secondary"
-                style={{ padding: '6px 12px', fontSize: '11px', borderRadius: '6px' }}
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                Return to Site
-              </button>
+              <div className="console-hud-left">
+                <button
+                  onClick={() => setViewMode('landing')}
+                  className="crisp-button-secondary"
+                  style={{ padding: '6px 12px', fontSize: '11px', borderRadius: '3px' }}
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  Return to Site
+                </button>
 
-              <div className="console-hud-brand">
-                <div className="brand-icon-box" style={{ padding: '6px' }}>
-                  <Cpu className="w-4 h-4 text-cyan-400" />
+                <div className="console-hud-brand">
+                  <div className="brand-icon-box" style={{ padding: '6px', borderColor: 'var(--border-color)', background: 'transparent' }}>
+                    <Cpu className="w-4 h-4 text-blue-500" style={{ color: 'var(--accent-cyan)' }} />
+                  </div>
+                  <div>
+                    <h1 className="console-hud-brand-title text-white">PolyTest AI</h1>
+                    <p className="console-hud-brand-subtitle">Developer HUD Console</p>
+                  </div>
                 </div>
-                <div>
-                  <h1 className="console-hud-brand-title bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">PolyTest AI</h1>
-                  <p className="console-hud-brand-subtitle">Developer HUD Console</p>
-                </div>
+
+                {/* Project folder HUD dropdown */}
+                <select className="console-workspace-select">
+                  <option value="quantum">quantum-core-v2</option>
+                  <option value="alpha">alpha-parser-test</option>
+                  <option value="legacy">legacy-service-node</option>
+                </select>
               </div>
-
-              {/* Project folder HUD dropdown */}
-              <select className="console-workspace-select">
-                <option value="quantum">quantum-core-v2</option>
-                <option value="alpha">alpha-parser-test</option>
-                <option value="legacy">legacy-service-node</option>
-              </select>
-            </div>
 
             {/* Diagnostics HUD */}
             <div className="console-hud-right">
@@ -1934,7 +1928,7 @@ function App() {
                 
                 <div className="tree-node-nested-line-container">
                   <div className="tree-node-folder flex-row-align">
-                    <Folder className="w-3.5 h-3.5 text-purple-400 fill-current" />
+                    <Folder className="w-3.5 h-3.5 text-blue-500 fill-current" style={{ color: 'var(--accent-cyan)' }} />
                     <span>src</span>
                   </div>
 
@@ -1955,7 +1949,7 @@ function App() {
                             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{baseName}</span>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                            <span style={{ fontSize: '8px', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', background: 'rgba(0, 245, 255, 0.05)', padding: '1px 4px', borderRadius: '3px' }}>{coverage}</span>
+                            <span style={{ fontSize: '8px', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', background: 'rgba(55, 148, 255, 0.1)', padding: '1px 4px', borderRadius: '3px' }}>{coverage}</span>
                             <span style={{ fontSize: '8px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>cached</span>
                           </div>
                         </div>
@@ -1968,7 +1962,7 @@ function App() {
               {/* Historical Coverage Performance Mini-Charts Analytics */}
               <div className="coverage-analytics-box" style={{ width: '100%', borderTop: '1px solid var(--border-color)', paddingTop: '14px', marginTop: '8px' }}>
                 <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
-                  <Activity className="w-3.5 h-3.5 text-purple-400" />
+                  <Activity className="w-3.5 h-3.5 text-blue-500" style={{ color: 'var(--accent-cyan)' }} />
                   Module Coverage
                 </span>
                 
@@ -1978,10 +1972,10 @@ function App() {
                   <div className="coverage-bar-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
                       <span>UserAuth.ts</span>
-                      <span style={{ color: 'var(--accent-green)' }}>92%</span>
+                      <span style={{ color: 'var(--accent-cyan)' }}>92%</span>
                     </div>
                     <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.03)', borderRadius: '2px', overflow: 'hidden' }}>
-                      <div style={{ width: '92%', height: '100%', background: 'var(--accent-green)', borderRadius: '2px' }} />
+                      <div style={{ width: '92%', height: '100%', background: 'var(--accent-cyan)', borderRadius: '2px' }} />
                     </div>
                   </div>
 
@@ -2000,10 +1994,10 @@ function App() {
                   <div className="coverage-bar-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
                       <span>DataParser.cpp</span>
-                      <span style={{ color: 'var(--accent-purple)' }}>84%</span>
+                      <span style={{ color: 'var(--text-secondary)' }}>84%</span>
                     </div>
                     <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.03)', borderRadius: '2px', overflow: 'hidden' }}>
-                      <div style={{ width: '84%', height: '100%', background: 'var(--accent-purple)', borderRadius: '2px' }} />
+                      <div style={{ width: '84%', height: '100%', background: 'var(--text-secondary)', borderRadius: '2px' }} />
                     </div>
                   </div>
 
@@ -2614,7 +2608,7 @@ function App() {
                 </div>
                 <div className="telemetry-card">
                   <span className="telemetry-card-title">DIAGNOSTICS</span>
-                  <span className="telemetry-card-value" style={{ color: syntaxCorrectness === 100 ? 'var(--accent-green)' : 'var(--accent-cyan)' }}>{syntaxCorrectness}% OK</span>
+                  <span className="telemetry-card-value" style={{ color: 'var(--accent-cyan)' }}>{syntaxCorrectness}% OK</span>
                   <span className="telemetry-card-desc">{issueCount} compiled warnings</span>
                 </div>
               </div>
@@ -2622,21 +2616,22 @@ function App() {
               {/* Dynamic SVG Live Telemetry Chart */}
               {(() => {
                 const cpuLinePath = `M ${cpuHistory.map((val, idx) => `${idx * (300 / 14)} ${80 - (val / 100) * 70}`).join(' L ')}`;
-                const ramLinePath = `M ${ramHistory.map((val, idx) => `${idx * (300 / 14)} ${80 - (val / 100) * 70}`).join(' L ')}`;
+                const ramHistoryNorm = ramHistory.map(v => v > 100 ? 100 : v);
+                const ramLinePath = `M ${ramHistoryNorm.map((val, idx) => `${idx * (300 / 14)} ${80 - (val / 100) * 70}`).join(' L ')}`;
                 const cpuAreaPath = `${cpuLinePath} L 300 80 L 0 80 Z`;
                 const ramAreaPath = `${ramLinePath} L 300 80 L 0 80 Z`;
 
                 return (
-                  <div className="svg-chart-container">
+                  <div className="svg-chart-container" style={{ border: '1px solid var(--border-color)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span className="mono-label" style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Real-time System Resource Telemetry</span>
                       <div className="telemetry-chart-legend">
                         <div className="legend-item">
-                          <span className="legend-dot cyan" />
+                          <span className="legend-dot" style={{ backgroundColor: 'var(--accent-cyan)' }} />
                           <span>CPU ({cpuHistory[cpuHistory.length - 1]}%)</span>
                         </div>
                         <div className="legend-item">
-                          <span className="legend-dot purple" />
+                          <span className="legend-dot" style={{ backgroundColor: 'var(--text-secondary)' }} />
                           <span>RAM ({ramHistory[ramHistory.length - 1]}MB)</span>
                         </div>
                       </div>
@@ -2644,12 +2639,12 @@ function App() {
                     <svg viewBox="0 0 300 80" className="telemetry-chart-svg">
                       <defs>
                         <linearGradient id="cpuGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                          <stop offset="0%" stopColor="var(--accent-cyan)" stopOpacity="0.25" />
+                          <stop offset="0%" stopColor="var(--accent-cyan)" stopOpacity="0.2" />
                           <stop offset="100%" stopColor="var(--accent-cyan)" stopOpacity="0" />
                         </linearGradient>
                         <linearGradient id="ramGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                          <stop offset="0%" stopColor="var(--accent-purple)" stopOpacity="0.25" />
-                          <stop offset="100%" stopColor="var(--accent-purple)" stopOpacity="0" />
+                          <stop offset="0%" stopColor="var(--text-secondary)" stopOpacity="0.1" />
+                          <stop offset="100%" stopColor="var(--text-secondary)" stopOpacity="0" />
                         </linearGradient>
                       </defs>
                       
@@ -2660,11 +2655,11 @@ function App() {
                       
                       {/* RAM Area & Line */}
                       <path d={ramAreaPath} fill="url(#ramGradient)" />
-                      <path d={ramLinePath} fill="none" stroke="var(--accent-purple)" strokeWidth="1.5" className="chart-neon-glow-purple" />
+                      <path d={ramLinePath} fill="none" stroke="var(--text-secondary)" strokeWidth="1.2" />
                       
                       {/* CPU Area & Line */}
                       <path d={cpuAreaPath} fill="url(#cpuGradient)" />
-                      <path d={cpuLinePath} fill="none" stroke="var(--accent-cyan)" strokeWidth="1.5" className="chart-neon-glow-cyan" />
+                      <path d={cpuLinePath} fill="none" stroke="var(--accent-cyan)" strokeWidth="1.2" />
                     </svg>
                   </div>
                 );
@@ -2673,7 +2668,7 @@ function App() {
               {/* Parameters & Configuration Dock */}
               <div className="crisp-panel" style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Sliders className="w-3.5 h-3.5 text-cyan-400" />
+                  <Sliders className="w-3.5 h-3.5" style={{ color: 'var(--accent-cyan)' }} />
                   Parameters Dock
                 </span>
 
@@ -2681,7 +2676,7 @@ function App() {
                 <div className="preset-configuration-box" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label className="mono-label" style={{ display: 'block', textAlign: 'left', fontSize: '8px' }}>AI Prompts Preset</label>
                   
-                  <div className="preset-tab-group" style={{ display: 'flex', background: 'rgba(255,255,255,0.02)', padding: '3px', borderRadius: '8px', border: '1px solid var(--border-color)', gap: '4px', position: 'relative' }}>
+                  <div className="preset-tab-group" style={{ display: 'flex', background: 'rgba(255,255,255,0.02)', padding: '3px', borderRadius: '3px', border: '1px solid var(--border-color)', gap: '4px', position: 'relative' }}>
                     <button
                       onClick={() => applyPreset('standard')}
                       className={`preset-tab-btn ${selectedPreset === 'standard' ? 'active' : ''}`}
@@ -2839,7 +2834,7 @@ function App() {
                   onClick={handleGenerate}
                   disabled={isGenerating || !selectedFile || selectedMethods.length === 0}
                   className="crisp-button"
-                  style={{ width: '100%', padding: '10px 12px', background: 'linear-gradient(135deg, var(--accent-cyan), var(--accent-purple))', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}
+                  style={{ width: '100%', padding: '10px 12px', background: 'var(--accent-cyan)', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontWeight: 600 }}
                 >
                   {isGenerating ? (
                     <>
@@ -2983,8 +2978,8 @@ function App() {
                             <span>Target test coverage:</span>
                             <span style={{ color: 'var(--accent-cyan)', fontWeight: 600 }}>{coverageTarget}% target</span>
                           </div>
-                          <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.02)', borderRadius: '2px', overflow: 'hidden' }}>
-                            <div style={{ width: `${coverageTarget}%`, height: '100%', background: 'linear-gradient(90deg, var(--accent-cyan), var(--accent-purple))' }} />
+                          <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.02)', borderRadius: '0px', overflow: 'hidden' }}>
+                            <div style={{ width: `${coverageTarget}%`, height: '100%', background: 'var(--accent-cyan)' }} />
                           </div>
                         </div>
 
@@ -3137,14 +3132,14 @@ function App() {
               </div>
 
               {/* CTA */}
-              <div style={{ marginTop: '40px', padding: '20px', background: 'rgba(0, 245, 255, 0.02)', border: '1px solid rgba(0, 245, 255, 0.08)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ marginTop: '40px', padding: '20px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '3px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <h4 style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: '#fff', margin: 0 }}>Ready to validate your code sandbox?</h4>
                   <p style={{ fontSize: '10px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>Launch the developer workspace directly from the console dashboard.</p>
                 </div>
                 <button 
                   onClick={() => setViewMode('console')}
-                  style={{ background: 'linear-gradient(135deg, var(--accent-cyan), var(--accent-purple))', border: 'none', borderRadius: '6px', color: '#fff', padding: '8px 18px', fontSize: '11px', fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-mono)' }}
+                  style={{ background: 'var(--accent-cyan)', border: 'none', borderRadius: '3px', color: '#fff', padding: '8px 18px', fontSize: '11px', fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-mono)' }}
                 >
                   Launch Console
                 </button>
