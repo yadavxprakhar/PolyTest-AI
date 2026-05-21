@@ -8,7 +8,6 @@ import {
   FolderOpen,
   Binary,
   FileCode,
-  Bell,
   Activity,
   Check,
   ArrowRight,
@@ -2141,18 +2140,27 @@ function App() {
                 <RefreshCw className="w-4 h-4" />
               </button>
 
-              <button className="icon-button-hud" style={{ position: 'relative' }}>
-                <Bell className="w-4 h-4" />
-                <span style={{ position: 'absolute', top: '4px', right: '4px', width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-cyan)' }} />
-              </button>
-
               <div style={{ height: '24px', width: '1px', background: 'rgba(255,255,255,0.06)' }} />
 
-              <img 
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop" 
-                alt="Developer Avatar" 
-                className="avatar-hud"
-              />
+              <button 
+                onClick={() => window.location.href = '/login'}
+                style={{
+                  background: '#ffffff',
+                  color: '#000000',
+                  border: 'none',
+                  padding: '6px 16px',
+                  borderRadius: '4px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  letterSpacing: '0.5px',
+                  transition: 'opacity 0.2s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+              >
+                LOGIN
+              </button>
             </div>
           </header>
 
