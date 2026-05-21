@@ -2144,8 +2144,32 @@ function Console() {
               {/* Center Search Bar Area */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, justifyContent: 'center' }}>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <ArrowLeft className="w-4 h-4 text-gray-500" style={{ color: '#888', cursor: 'pointer' }} />
-                  <ArrowRight className="w-4 h-4 text-gray-500" style={{ color: '#555', cursor: 'default' }} />
+                  <ArrowLeft 
+                    className="w-4 h-4 text-gray-500" 
+                    style={{ 
+                      color: openEditors.length > 0 && selectedFile && openEditors.findIndex(f => f.file_path === selectedFile.file_path) > 0 ? '#fff' : '#555', 
+                      cursor: openEditors.length > 0 && selectedFile && openEditors.findIndex(f => f.file_path === selectedFile.file_path) > 0 ? 'pointer' : 'default' 
+                    }} 
+                    onClick={() => {
+                      if (openEditors.length > 0 && selectedFile) {
+                        const idx = openEditors.findIndex(f => f.file_path === selectedFile.file_path);
+                        if (idx > 0) setSelectedFile(openEditors[idx - 1]);
+                      }
+                    }}
+                  />
+                  <ArrowRight 
+                    className="w-4 h-4 text-gray-500" 
+                    style={{ 
+                      color: openEditors.length > 0 && selectedFile && openEditors.findIndex(f => f.file_path === selectedFile.file_path) < openEditors.length - 1 ? '#fff' : '#555', 
+                      cursor: openEditors.length > 0 && selectedFile && openEditors.findIndex(f => f.file_path === selectedFile.file_path) < openEditors.length - 1 ? 'pointer' : 'default' 
+                    }} 
+                    onClick={() => {
+                      if (openEditors.length > 0 && selectedFile) {
+                        const idx = openEditors.findIndex(f => f.file_path === selectedFile.file_path);
+                        if (idx < openEditors.length - 1) setSelectedFile(openEditors[idx + 1]);
+                      }
+                    }}
+                  />
                 </div>
                 <div style={{ 
                   display: 'flex', 
@@ -2622,7 +2646,6 @@ function Console() {
                         whiteSpace: 'nowrap'
                       }}
                     >
-                      <FileCode className={`w-3.5 h-3.5 ${selectedFile?.file_path === file.file_path ? 'text-cyan-400' : 'text-gray-500'}`} />
                       <span>{file.file_path.split('/').pop()}</span>
                       <X 
                         className="w-3.5 h-3.5" 
