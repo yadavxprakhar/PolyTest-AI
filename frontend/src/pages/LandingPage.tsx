@@ -188,16 +188,73 @@ const LandingPage: React.FC = () => {
         </motion.div>
       </main>
 
-      {/* Footer */}
-      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 10, background: '#020308' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '14px' }}>
-          <Cpu className="w-5 h-5 text-gray-500" />
-          <span>© 2026 PolyTest AI Inc. All rights reserved.</span>
+      {/* SaaS Footer */}
+      <footer className="saas-footer-premium" style={{ position: 'relative', zIndex: 10, background: '#020308' }}>
+        <div className="footer-grid-container">
+          
+          {/* Brand Column */}
+          <div className="footer-brand-col">
+            <div className="footer-logo-row">
+              <div className="brand-icon-box">
+                <Cpu className="w-4 h-4 text-cyan-400" />
+              </div>
+              <span className="footer-logo-text">PolyTest AI</span>
+            </div>
+            <p className="footer-brand-tagline">
+              Autonomous AST-driven unit testing, fully cached, completely offline-first.
+            </p>
+            <div className="footer-status-pill">
+              <span className={`nav-status-dot active`}></span>
+              <span className="footer-status-text">HEALTH: 100% OPERATIONAL</span>
+            </div>
+          </div>
+
+          {/* Links Column 1 */}
+          <div className="footer-links-col" style={{ gridColumn: 'span 2' }}>
+            <h5 className="footer-col-header">Platform Engine</h5>
+            <ul className="footer-links-list">
+              <li><a href="#features">AST Class Parser</a></li>
+              <li><a href="#features">Drycompile Linter</a></li>
+              <li><a href="#features">Subprocess Subrunner</a></li>
+              <li><a href="#features">MD5 Prompt Cache</a></li>
+            </ul>
+          </div>
+
+          {/* Links Column 2 */}
+          <div className="footer-links-col" style={{ gridColumn: 'span 2' }}>
+            <h5 className="footer-col-header">Resources</h5>
+            <ul className="footer-links-list">
+              <li><a href="#guide">Platform User Guide</a></li>
+              <li><a href="#vscode">VS Code Plugin</a></li>
+              <li><a href="#api">Local REST API</a></li>
+              <li><a href="#docs">Developer SDKs</a></li>
+              <li><a href="#docs">Platform Architecture</a></li>
+            </ul>
+          </div>
+
+          {/* Links Column 3 */}
+          <div className="footer-links-col" style={{ gridColumn: 'span 3' }}>
+            <h5 className="footer-col-header">Enterprise</h5>
+            <ul className="footer-links-list">
+              <li><a href="#pricing">Startup Pro</a></li>
+              <li><a href="#pricing">Subprocess Sandboxes</a></li>
+              <li><a href="#docs">SLA Commitments</a></li>
+              <li><a href="#docs">Compliance & Security</a></li>
+            </ul>
+          </div>
+
         </div>
-        <div style={{ display: 'flex', gap: '24px', color: 'var(--text-secondary)', fontSize: '14px' }}>
-          <span style={{ cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}>Twitter</span>
-          <span style={{ cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}>GitHub</span>
-          <span style={{ cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}>Discord</span>
+
+        {/* Bottom Row */}
+        <div className="footer-bottom-row">
+          <div className="footer-copyright">
+            © 2026 PolyTest AI Inc. All rights reserved. Completely offline-first engine.
+          </div>
+          <div className="footer-cryptography-tags">
+            <span className="crypto-hud-badge">[SYS_ACTIVE]</span>
+            <span className="crypto-hud-badge">[MD5_CACHE_ACTIVE]</span>
+            <span className="crypto-hud-badge">[SANDBOX_ISOLATED]</span>
+          </div>
         </div>
       </footer>
     </div>

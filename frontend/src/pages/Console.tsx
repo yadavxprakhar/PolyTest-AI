@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, type Variants } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   Play, 
-  Cpu, 
   RefreshCw, 
   Code,
   FolderOpen,
@@ -11,7 +10,6 @@ import {
   Activity,
   Check,
   ArrowRight,
-  ShieldCheck,
   ShieldAlert,
   Zap,
   Layers,
@@ -519,26 +517,6 @@ public class AuthService {
 
 const API_BASE = 'http://127.0.0.1:8000/api/v1';
 
-const staggerContainer: Variants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.05
-    }
-  }
-};
-
-const slideUpItem: Variants = {
-  hidden: { opacity: 0, y: 15 },
-  show: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { type: "spring", stiffness: 200, damping: 18 } 
-  }
-};
-
 interface MethodSignature {
   name: string;
   args: string;
@@ -940,10 +918,7 @@ import { useNavigate } from 'react-router-dom';
 
 function Console() {
   const navigate = useNavigate();
-  // State for AI HUD System: 'landing' or 'console' or 'guide'
-  const [viewMode, setViewMode] = useState<'landing' | 'console' | 'guide'>('landing');
-  const [isScrolled, setIsScrolled] = useState<boolean>(false);
-
+  
   // Connection and Workspace States
   const [isBackendOnline, setIsBackendOnline] = useState<boolean>(false);
   const [projectRoot, setProjectRoot] = useState<string>('/Users/prakhar/Projects/Polytest AI ');
@@ -1137,10 +1112,6 @@ function Console() {
 
   useEffect(() => {
     checkHealth();
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
     
     // Live chart updates
     const chartInterval = setInterval(() => {
@@ -1155,7 +1126,6 @@ function Console() {
     }, 1000);
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
       clearInterval(chartInterval);
     };
   }, []);
@@ -1729,399 +1699,7 @@ function Console() {
 
   return (
     <div className="select-none">
-      <AnimatePresence mode="wait">
-        
-        {/* ========================================================================= */}
-        {/* VIEW MODE 1: PREMIUM SAAS LANDING PAGE */}
-        {/* ========================================================================= */}
-        {viewMode === 'landing' && (
-          <motion.div 
-            key="landing-view"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-            className="landing-layout-root"
-          >
-          
-          {/* SaaS Header Bar */}
-          <nav className={`saas-nav-block ${isScrolled ? 'scrolled' : ''}`}>
-            <div className="landing-inner-wrap">
-              <div className="flex-row-align">
-                <div className="brand-icon-box" style={{ borderColor: 'var(--border-color)', background: 'transparent' }}>
-                  <Cpu className="w-5 h-5 text-blue-500" style={{ color: 'var(--accent-cyan)' }} />
-                </div>
-                <h1 className="text-xl font-bold tracking-tight text-white">PolyTest AI</h1>
-              </div>
-
-              <div className="saas-nav-links">
-                <a href="#features">Features</a>
-                <a href="#pricing">Pricing</a>
-                <a href="#vscode">VS Code Extension</a>
-                <span className="nav-split-divider" />
-                <div className="nav-status-badge">
-                  <span className={`nav-status-dot ${isBackendOnline ? 'active' : 'sandbox'}`} />
-                  <span>{isBackendOnline ? 'REST Active' : 'Sandbox Ready'}</span>
-                </div>
-              </div>
-
-              <button 
-                onClick={() => setViewMode('console')}
-                className="crisp-button"
-              >
-                Launch Console
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          </nav>
-
-          <main className="landing-content-wrap">
-
-          {/* SaaS Hero Section */}
-          <header className="hero-wrapper">
-            <motion.div 
-              className="hero-left"
-              variants={staggerContainer}
-              initial="hidden"
-              animate="show"
-            >
-              <motion.span className="hero-tag" variants={slideUpItem}>
-                🚀 Now Supporting 7 Languages
-              </motion.span>
-              <motion.h2 className="hero-heading" variants={slideUpItem}>
-                Autonomous Unit Test Generation For <span className="gradient-text">Developers.</span>
-              </motion.h2>
-              <motion.p className="hero-description" style={{ fontSize: '15px' }} variants={slideUpItem}>
-                Statically parse codebase AST architectures, execute compiler linter dry-runs, and validate test suites via sandboxed subprocess runners—instantly and completely offline.
-              </motion.p>
-
-              <motion.div className="hero-cta-buttons" variants={slideUpItem}>
-                <button 
-                  onClick={() => setViewMode('console')}
-                  className="crisp-button"
-                  style={{ padding: '14px 28px' }}
-                >
-                  Start Free Workspace
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-
-                <a 
-                  href="#vscode"
-                  className="crisp-button-secondary"
-                  style={{ padding: '14px 28px' }}
-                >
-                  Install Extension
-                </a>
-              </motion.div>
-            </motion.div>
-
-            {/* Interactive 3D Conceptual Code Compiler Sphere */}
-            <div className="hero-right-visual">
-              <div className="compiler-3d-container">
-                <div className="viewport-3d">
-                  
-                  {/* Floating Holographic telemetry indicators */}
-                  <span className="telemetry-tag t-1">[SYS_ACTIVE]</span>
-                  <span className="telemetry-tag t-2">[LINT_SECURE]</span>
-
-                  {/* 3D Floating Glassmorphic Code Panels */}
-                  <div className="hologram-panel pos-tl">
-                    <span style={{ color: 'var(--accent-cyan)' }}>class UserAuth {"{"}</span>
-                    <span style={{ color: 'var(--text-muted)', paddingLeft: '8px' }}>login(creds) {"{"}</span>
-                    <span style={{ color: 'var(--accent-green)', paddingLeft: '16px' }}>return token;</span>
-                    <span style={{ color: 'var(--text-muted)', paddingLeft: '8px' }}>{"}"}</span>
-                    <span style={{ color: 'var(--accent-cyan)' }}>{"}"}</span>
-                  </div>
-
-                  <div className="hologram-panel pos-tr">
-                    <span style={{ color: 'var(--accent-purple)' }}>import {"{"} stripe {"}"}</span>
-                    <span style={{ color: 'var(--text-secondary)' }}>payment.initialize()</span>
-                    <span style={{ color: 'var(--accent-green)' }}>✓ AST parsed 100%</span>
-                  </div>
-
-                  <div className="hologram-panel pos-bl">
-                    <span style={{ color: 'var(--accent-red)' }}>#include &lt;gtest&gt;</span>
-                    <span style={{ color: '#fff' }}>TEST_F(LoadsBuffers)</span>
-                    <span style={{ color: 'var(--accent-green)' }}>✓ GTest Ok</span>
-                  </div>
-
-                  <div className="hologram-panel pos-br">
-                    <span style={{ color: 'var(--accent-cyan)' }}>package main</span>
-                    <span style={{ color: 'var(--text-secondary)' }}>go test -v ./...</span>
-                    <span style={{ color: 'var(--accent-green)' }}>✓ 100% Cov</span>
-                  </div>
-
-                  {/* Pulsating energy core sphere */}
-                  <div className="pulse-core" />
-
-                  {/* Orthogonal spinning 3D rings */}
-                  <div className="sphere-3d-core">
-                    <div className="ring-3d axis-x" />
-                    <div className="ring-3d axis-y" />
-                    <div className="ring-3d axis-z" />
-                  </div>
-
-                </div>
-              </div>
-            </div>
-          </header>
-
-          {/* Feature grid Section */}
-          <section id="features" style={{ borderTop: '1px solid var(--border-color)' }}>
-            <div className="features-grid-wrapper">
-              
-              {/* Feature 1 */}
-              <motion.div 
-                className="feature-box-crisp"
-                whileHover={{ y: -6, scale: 1.015, borderColor: "rgba(0, 245, 255, 0.25)", boxShadow: "0 10px 30px rgba(0, 245, 255, 0.06)" }}
-                transition={{ type: "spring", stiffness: 300, damping: 16 }}
-              >
-                <div className="icon-wrapper-badge cyan">
-                  <Code className="w-4 h-4" />
-                </div>
-                <h4 className="feature-card-title">Multi-Language AST</h4>
-                <p className="feature-card-desc">
-                  State-aware AST parsers statically profile classes, imports, functions, and complexity with zero compiler dependencies.
-                </p>
-              </motion.div>
-
-              {/* Feature 2 */}
-              <motion.div 
-                className="feature-box-crisp"
-                whileHover={{ y: -6, scale: 1.015, borderColor: "rgba(140, 82, 255, 0.25)", boxShadow: "0 10px 30px rgba(140, 82, 255, 0.06)" }}
-                transition={{ type: "spring", stiffness: 300, damping: 16 }}
-              >
-                <div className="icon-wrapper-badge purple">
-                  <ShieldCheck className="w-4 h-4" />
-                </div>
-                <h4 className="feature-card-title">Syntax drycompile linter</h4>
-                <p className="feature-card-desc">
-                  Automated validation linter compiler scans (e.g. `node --check`, `javac`) catch syntax exceptions prior to writing files.
-                </p>
-              </motion.div>
-
-              {/* Feature 3 */}
-              <motion.div 
-                className="feature-box-crisp"
-                whileHover={{ y: -6, scale: 1.015, borderColor: "rgba(16, 185, 129, 0.25)", boxShadow: "0 10px 30px rgba(16, 185, 129, 0.06)" }}
-                transition={{ type: "spring", stiffness: 300, damping: 16 }}
-              >
-                <div className="icon-wrapper-badge green">
-                  <Zap className="w-4 h-4" />
-                </div>
-                <h4 className="feature-card-title">Subprocess execution</h4>
-                <p className="feature-card-desc">
-                  Test execution engines trigger local runners (Jest, pytest, JUnit) inside spawned background threads, parsing stdout streams.
-                </p>
-              </motion.div>
-
-              {/* Feature 4 */}
-              <motion.div 
-                className="feature-box-crisp"
-                whileHover={{ y: -6, scale: 1.015, borderColor: "rgba(239, 68, 68, 0.25)", boxShadow: "0 10px 30px rgba(239, 68, 68, 0.06)" }}
-                transition={{ type: "spring", stiffness: 300, damping: 16 }}
-              >
-                <div className="icon-wrapper-badge red">
-                  <Layers className="w-4 h-4" />
-                </div>
-                <h4 className="feature-card-title">MD5 Prompt Caching</h4>
-                <p className="feature-card-desc">
-                  Encodes generated targets under local MD5 prompts caching hashes, saving up to 80% on developer credit costs.
-                </p>
-              </motion.div>
-
-            </div>
-          </section>
-
-          {/* VS Code Extension Section */}
-          <section id="vscode" className="saas-vscode-section">
-            <div className="vscode-left-text">
-              <span className="section-label">Integrations</span>
-              <h3 className="section-main-heading">The native VS Code extension is active</h3>
-              <p className="hero-description">
-                Since the entire engine runs under zero-dependency TypeScript modules, you can package the backend directly inside your VS Code extension. Trigger unit test code generation with a simple right-click inside your editor panel!
-              </p>
-              <div className="vscode-terminal-cmd">
-                <span>$ ext install polytest.polytest-vscode</span>
-              </div>
-            </div>
-
-            <div className="vscode-right-mockup">
-              <div className="simulated-editor-window">
-                <div className="editor-window-header">
-                  <span className="dot-btn red" />
-                  <span className="dot-btn yellow" />
-                  <span className="dot-btn green" />
-                  <span className="editor-window-title">polytest-extension-development-host</span>
-                </div>
-                <p style={{ color: 'var(--accent-purple)' }}>⚡ PolyTest AI VS Code Extension active!</p>
-                <p style={{ color: 'var(--text-muted)', marginTop: '8px' }}>// Context menu hook registered: editor/context</p>
-                <p style={{ color: '#fff', marginTop: '6px' }}>Right-click menu: [PolyTest AI: Generate Unit Tests]</p>
-                <p style={{ color: 'var(--accent-cyan)', marginTop: '12px' }}>✨ Generating PaymentService.test.ts (100% correct AST parsed)...</p>
-              </div>
-            </div>
-          </section>
-
-          {/* Pricing Grid Section */}
-          <section id="pricing" className="pricing-section-wrapper">
-            <div className="section-header-block">
-              <span className="section-label">Pricing</span>
-              <h3 className="section-main-heading">Flexible plans for any team</h3>
-            </div>
-
-            <div className="pricing-grid-crisp">
-              
-              {/* Plan 1 */}
-              <div className="pricing-card-crisp">
-                <div>
-                  <h4 className="pricing-card-title">Developer</h4>
-                  <p className="pricing-card-sub">For hobbyists and local extension compilers.</p>
-                </div>
-                <div className="pricing-card-amount-block">
-                  <span className="pricing-amount">$0</span>
-                  <span className="pricing-period">/forever</span>
-                </div>
-                <ul className="pricing-features-list">
-                  <li>✓ Local Mock Generation</li>
-                  <li>✓ Dynamic AST Parsers</li>
-                  <li>✓ VS Code offline extension</li>
-                </ul>
-                <button onClick={() => setViewMode('console')} className="crisp-button-secondary" style={{ marginTop: 'auto', justifyContent: 'center' }}>
-                  Get Started
-                </button>
-              </div>
-
-              {/* Plan 2: Promoted SaaS Card */}
-              <div className="pricing-card-crisp highlighted">
-                <span className="pricing-popular-tag">
-                  Popular
-                </span>
-                <div>
-                  <h4 className="pricing-card-title">Startup Pro</h4>
-                  <p className="pricing-card-sub">For fast-moving development teams.</p>
-                </div>
-                <div className="pricing-card-amount-block">
-                  <span className="pricing-amount">$29</span>
-                  <span className="pricing-period">/month</span>
-                </div>
-                <ul className="pricing-features-list">
-                  <li className="highlight-item">✓ Real OpenAI / Gemini API access</li>
-                  <li>✓ Unlimited Cache Lookups</li>
-                  <li>✓ Direct CLI subprocess runs</li>
-                  <li>✓ Comprehensive validator modes</li>
-                </ul>
-                <button onClick={() => setViewMode('console')} className="crisp-button" style={{ marginTop: 'auto' }}>
-                  Launch Console
-                </button>
-              </div>
-
-              {/* Plan 3 */}
-              <div className="pricing-card-crisp">
-                <div>
-                  <h4 className="pricing-card-title">Enterprise</h4>
-                  <p className="pricing-card-sub">For scale-ups and high compliance pipelines.</p>
-                </div>
-                <div className="pricing-card-amount-block">
-                  <span className="pricing-amount">Custom</span>
-                </div>
-                <ul className="pricing-features-list">
-                  <li>✓ Dedicated local LLM hosting</li>
-                  <li>✓ Custom linter integrations</li>
-                  <li>✓ SLA support channels</li>
-                </ul>
-                <button onClick={() => setViewMode('console')} className="crisp-button-secondary" style={{ marginTop: 'auto', justifyContent: 'center' }}>
-                  Contact Sales
-                </button>
-              </div>
-
-            </div>
-          </section>
-
-          {/* SaaS Footer */}
-          <footer className="saas-footer-premium">
-            <div className="footer-grid-container">
-              
-              {/* Brand Column */}
-              <div className="footer-brand-col">
-                <div className="footer-logo-row">
-                  <div className="brand-icon-box">
-                    <Cpu className="w-4 h-4 text-cyan-400" />
-                  </div>
-                  <span className="footer-logo-text">PolyTest AI</span>
-                </div>
-                <p className="footer-brand-tagline">
-                  Autonomous AST-driven unit testing, fully cached, completely offline-first.
-                </p>
-                <div className="footer-status-pill">
-                  <span className={`nav-status-dot active`}></span>
-                  <span className="footer-status-text">HEALTH: 100% OPERATIONAL</span>
-                </div>
-              </div>
-
-              {/* Links Column 1 */}
-              <div className="footer-links-col" style={{ gridColumn: 'span 2' }}>
-                <h5 className="footer-col-header">Platform Engine</h5>
-                <ul className="footer-links-list">
-                  <li><a href="#features">AST Class Parser</a></li>
-                  <li><a href="#features">Drycompile Linter</a></li>
-                  <li><a href="#features">Subprocess Subrunner</a></li>
-                  <li><a href="#features">MD5 Prompt Cache</a></li>
-                </ul>
-              </div>
-
-              {/* Links Column 2 */}
-              <div className="footer-links-col" style={{ gridColumn: 'span 2' }}>
-                <h5 className="footer-col-header">Resources</h5>
-                <ul className="footer-links-list">
-                  <li><button onClick={() => setViewMode('guide')} style={{ background: 'none', border: 'none', padding: 0, color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', textAlign: 'left', display: 'block', outline: 'none' }} className="footer-link-btn">Platform User Guide</button></li>
-                  <li><a href="#vscode">VS Code Plugin</a></li>
-                  <li><a href="#api">Local REST API</a></li>
-                  <li><a href="#docs">Developer SDKs</a></li>
-                  <li><a href="#docs">Platform Architecture</a></li>
-                </ul>
-              </div>
-
-              {/* Links Column 3 */}
-              <div className="footer-links-col" style={{ gridColumn: 'span 3' }}>
-                <h5 className="footer-col-header">Enterprise</h5>
-                <ul className="footer-links-list">
-                  <li><a href="#pricing">Startup Pro</a></li>
-                  <li><a href="#pricing">Subprocess Sandboxes</a></li>
-                  <li><a href="#docs">SLA Commitments</a></li>
-                  <li><a href="#docs">Compliance & Security</a></li>
-                </ul>
-              </div>
-
-            </div>
-
-            {/* Bottom Row */}
-            <div className="footer-bottom-row">
-              <div className="footer-copyright">
-                © 2026 PolyTest AI Inc. All rights reserved. Completely offline-first engine.
-              </div>
-              <div className="footer-cryptography-tags">
-                <span className="crypto-hud-badge">[SYS_ACTIVE]</span>
-                <span className="crypto-hud-badge">[MD5_CACHE_ACTIVE]</span>
-                <span className="crypto-hud-badge">[SANDBOX_ISOLATED]</span>
-              </div>
-            </div>
-          </footer>
-
-          </main>
-
-          </motion.div>
-        )}
-
-        {viewMode === 'console' && (
-          <motion.div 
-            key="console-view"
-            initial={{ opacity: 0, y: 15, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -15, scale: 0.98 }}
-            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-          >
-            {/* VS Code Style Title Bar */}
-            <div style={{
+        <div style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -2255,7 +1833,7 @@ function Console() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
                 <CircleUser className="w-6 h-6 text-gray-500" strokeWidth={1.5} style={{ cursor: 'pointer', color: '#888' }} />
                 <Settings className="w-6 h-6 text-gray-500" strokeWidth={1.5} style={{ cursor: 'pointer', color: '#888' }} />
-                <div title="Return to Site" onClick={() => setViewMode('landing')} style={{ cursor: 'pointer', marginTop: '10px' }}>
+                <div title="Return to Site" onClick={() => navigate('/')} style={{ cursor: 'pointer', marginTop: '10px' }}>
                   <Home className="w-6 h-6 text-gray-500" strokeWidth={1.5} style={{ color: '#888' }} />
                 </div>
               </div>
@@ -3623,13 +3201,6 @@ function Console() {
             <p className="footer-subtitle-crisp" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
               <Binary className="w-3.5 h-3.5" />
               TypeScript Backend + React Frontend Architecture
-              <span style={{ color: 'rgba(255,255,255,0.08)' }}>|</span>
-              <button 
-                onClick={() => setViewMode('guide')}
-                style={{ background: 'none', border: 'none', color: 'var(--accent-cyan)', fontFamily: 'var(--font-mono)', fontSize: '9px', cursor: 'pointer', padding: 0, textDecoration: 'underline', outline: 'none' }}
-              >
-                USER GUIDE MANUAL
-              </button>
             </p>
           </footer>
 
@@ -3643,121 +3214,9 @@ function Console() {
             </defs>
           </svg>
 
-          </motion.div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* VIEW MODE 3: COMPREHENSIVE DEVELOPER USER GUIDE */}
-        {/* ========================================================================= */}
-        {viewMode === 'guide' && (
-          <motion.div 
-            key="guide-view"
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            style={{ width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'radial-gradient(circle at 50% 0%, #0c0f1d 0%, #030712 100%)', padding: '40px 20px', boxSizing: 'border-box' }}
-          >
-            {/* Header / Nav */}
-            <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '20px', marginBottom: '30px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Activity className="w-5 h-5 text-purple-400 animate-pulse" />
-                <span style={{ fontSize: '14px', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#fff', letterSpacing: '-0.02em' }}>PolyTest AI Manual</span>
-              </div>
-              <button 
-                onClick={() => setViewMode('landing')}
-                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '6px', color: '#fff', padding: '6px 14px', fontSize: '11px', fontFamily: 'var(--font-mono)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                Return Home
-              </button>
-            </div>
-
-            {/* Guide Content */}
-            <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%', background: 'rgba(3, 7, 18, 0.4)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '40px', boxSizing: 'border-box', textAlign: 'left' }}>
-              <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', background: 'rgba(0, 245, 255, 0.05)', color: 'var(--accent-cyan)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(0, 245, 255, 0.12)' }}>
-                OFFICIAL SYSTEM MANUAL
-              </span>
-              
-              <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#fff', marginTop: '16px', marginBottom: '8px', letterSpacing: '-0.03em' }}>
-                Polytest AI Rest Engine Guide
-              </h1>
-              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '32px' }}>
-                A highly comprehensive, premium operations manual for engineering teams building test suites with the Polytest AI local sandbox and compiler analysis framework.
-              </p>
-
-              {/* Grid sections */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-                
-                {/* Sec 1 */}
-                <div style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '20px' }}>
-                  <h3 style={{ fontSize: '14px', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 10px 0' }}>
-                    01. AST STRUCTURAL ANALYSIS
-                  </h3>
-                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6', margin: 0 }}>
-                    The Double-Column AST Class Explorer visualizes your target module classes, static methods, imports, and variables. Selecting any class method triggers the Token Inspector sidebar, providing instant access to parameter counts, accessibility parameters, async states, and recommended code coverage test mocks.
-                  </p>
-                </div>
-
-                {/* Sec 2 */}
-                <div style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '20px' }}>
-                  <h3 style={{ fontSize: '14px', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 10px 0' }}>
-                    02. DRYCOMPILE LINTER
-                  </h3>
-                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6', margin: 0 }}>
-                    The Subprocess Linter executes compile-time dryruns using target languages (e.g. `node --check`, `javac -Xlint`, `gcc -fsyntax-only`). Active warnings are captured inside the warning table registry with designated quick-remedies for instant code adjustment.
-                  </p>
-                </div>
-
-                {/* Sec 3 */}
-                <div style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '20px' }}>
-                  <h3 style={{ fontSize: '14px', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 10px 0' }}>
-                    03. SUBPROCESS SUBRUNNER TELEMETRY
-                  </h3>
-                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6', margin: 0 }}>
-                    Subrunner tracks terminal stdout streams, sandboxed process IDs (PID), memory consumption, and thread execution timers. Swapping between Logs, Metrics, and Diagnostics updates real-time telemetry from active test generation suites.
-                  </p>
-                </div>
-
-                {/* Sec 4 */}
-                <div style={{ paddingBottom: '10px' }}>
-                  <h3 style={{ fontSize: '14px', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 10px 0' }}>
-                    04. CRYPTOGRAPHIC PROMPT CACHING
-                  </h3>
-                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6', margin: 0 }}>
-                    Active prompt caching calculates MD5 checksum signatures derived from prompt configurations, source files, and LLM arguments. If identical file versions are scanned, Polytest AI instantly pulls test logs from the local `.cache` folder, bypassing API token calls and delivering a 15ms compile-time.
-                  </p>
-                </div>
-
-              </div>
-
-              {/* CTA */}
-              <div style={{ marginTop: '40px', padding: '20px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '3px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <h4 style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: '#fff', margin: 0 }}>Ready to validate your code sandbox?</h4>
-                  <p style={{ fontSize: '10px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>Launch the developer workspace directly from the console dashboard.</p>
-                </div>
-                <button 
-                  onClick={() => setViewMode('console')}
-                  style={{ background: 'var(--accent-cyan)', border: 'none', borderRadius: '3px', color: '#fff', padding: '8px 18px', fontSize: '11px', fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-mono)' }}
-                >
-                  Launch Console
-                </button>
-              </div>
-
-            </div>
-
-            {/* Footer */}
-            <div style={{ marginTop: '40px', fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-              © 2026 PolyTest AI REST Platform. All rights reserved.
-            </div>
-
-          </motion.div>
-        )}
-
-      </AnimatePresence>
+          
     </div>
   );
-}
+};
 
 export default Console;
