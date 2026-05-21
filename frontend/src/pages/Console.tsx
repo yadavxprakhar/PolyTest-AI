@@ -29,14 +29,11 @@ import {
   FilePlus,
   FolderPlus,
   ListCollapse,
-  PanelLeft,
-  PanelBottom,
-  PanelRight,
-  Layout,
   GitBranch,
   Bug,
   Blocks,
-  CircleUser
+  CircleUser,
+  Home
 } from 'lucide-react';
 
 
@@ -2113,13 +2110,13 @@ function Console() {
               width: '100%',
               boxSizing: 'border-box'
             }}>
-              {/* Window Controls */}
-              <div style={{ display: 'flex', alignItems: 'center', width: '200px' }}>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#FF5F56' }} />
-                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#FFBD2E' }} />
-                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#27C93F' }} />
-                </div>
+              {/* Left Side (Project Dropdown) */}
+              <div style={{ display: 'flex', alignItems: 'center', width: '200px', paddingLeft: '8px' }}>
+                <select className="console-workspace-select" style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: '#ccc', borderRadius: '4px', padding: '4px 8px', fontSize: '11px', outline: 'none' }}>
+                  <option value="quantum">quantum-core-v2</option>
+                  <option value="alpha">alpha-parser-test</option>
+                  <option value="legacy">legacy-service-node</option>
+                </select>
               </div>
 
               {/* Center Search Bar Area */}
@@ -2157,43 +2154,14 @@ function Console() {
                 </div>
               </div>
 
-              {/* Right Layout Controls */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '200px', justifyContent: 'flex-end', color: '#888' }}>
-                <PanelLeft className="w-4 h-4" style={{ cursor: 'pointer' }} />
-                <PanelBottom className="w-4 h-4" style={{ cursor: 'pointer' }} />
-                <PanelRight className="w-4 h-4" style={{ cursor: 'pointer' }} />
-                <Layout className="w-4 h-4" style={{ cursor: 'pointer' }} />
+              {/* Right Spacer */}
+              <div style={{ display: 'flex', alignItems: 'center', width: '200px', justifyContent: 'flex-end' }}>
               </div>
             </div>
 
             {/* Header HUD Navigation */}
             <header className="console-hud-bar">
               <div className="console-hud-left">
-                <button
-                  onClick={() => setViewMode('landing')}
-                  className="crisp-button-secondary"
-                  style={{ padding: '6px 12px', fontSize: '11px', borderRadius: '3px' }}
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                  Return to Site
-                </button>
-
-                <div className="console-hud-brand">
-                  <div className="brand-icon-box" style={{ padding: '6px', borderColor: 'var(--border-color)', background: 'transparent' }}>
-                    <Cpu className="w-4 h-4 text-blue-500" style={{ color: 'var(--accent-cyan)' }} />
-                  </div>
-                  <div>
-                    <h1 className="console-hud-brand-title text-white">PolyTest AI</h1>
-                    <p className="console-hud-brand-subtitle">Developer HUD Console</p>
-                  </div>
-                </div>
-
-                {/* Project folder HUD dropdown */}
-                <select className="console-workspace-select">
-                  <option value="quantum">quantum-core-v2</option>
-                  <option value="alpha">alpha-parser-test</option>
-                  <option value="legacy">legacy-service-node</option>
-                </select>
               </div>
 
             {/* Diagnostics HUD */}
@@ -2265,6 +2233,9 @@ function Console() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
                 <CircleUser className="w-6 h-6 text-gray-500" strokeWidth={1.5} style={{ cursor: 'pointer', color: '#888' }} />
                 <Settings className="w-6 h-6 text-gray-500" strokeWidth={1.5} style={{ cursor: 'pointer', color: '#888' }} />
+                <div title="Return to Site" onClick={() => setViewMode('landing')} style={{ cursor: 'pointer', marginTop: '10px' }}>
+                  <Home className="w-6 h-6 text-gray-500" strokeWidth={1.5} style={{ color: '#888' }} />
+                </div>
               </div>
             </div>
 
