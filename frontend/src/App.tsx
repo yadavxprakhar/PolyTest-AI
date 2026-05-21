@@ -591,6 +591,44 @@ function App() {
   // Terminal Tab State: 'execution' | 'metrics' | 'warnings'
   const [terminalTab, setTerminalTab] = useState<'execution' | 'metrics' | 'warnings'>('execution');
   const [workbenchWidth, setWorkbenchWidth] = useState<'wide' | 'narrow' | 'hidden'>('wide');
+  const [windowWidth, setWindowWidth] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1200);
+
+  // Dynamic layout calculations based on preset selection and screen/window width
+  const getFlexShares = () => {
+    if (workbenchWidth === 'hidden') {
+      return { left: 1, right: 0 };
+    }
+    
+    // Base ratios:
+    // 'narrow' -> 75:25 (Left: 1.5, Right: 0.5)
+    // 'wide' -> 55:45 (Left: 1.1, Right: 0.9)
+    let leftShare = workbenchWidth === 'narrow' ? 1.5 : 1.1;
+    let rightShare = workbenchWidth === 'narrow' ? 0.5 : 0.9;
+    
+    // Auto-minimize/hide on small screen dimensions to optimize code editor visibility
+    if (windowWidth < 768) {
+      // Extremely narrow screen (mobile): automatically hide right workbench completely
+      return { left: 1, right: 0 };
+    } else if (windowWidth < 1024) {
+      // Tablet/small laptop: force a narrower workbench so Left pane gets more space
+      leftShare = 1.7;
+      rightShare = 0.3;
+    } else if (windowWidth < 1280) {
+      // Medium screen: scale down right workbench moderately
+      if (workbenchWidth === 'wide') {
+        leftShare = 1.35;
+        rightShare = 0.65;
+      } else {
+        leftShare = 1.6;
+        rightShare = 0.4;
+      }
+    }
+    
+    return { left: leftShare, right: rightShare };
+  };
+
+  const flexShares = getFlexShares();
+  const isHidden = flexShares.right === 0;
 
   // Terminal & Run Outcomes
   const [terminalLogs, setTerminalLogs] = useState<string[]>([
@@ -645,7 +683,11 @@ function App() {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
     window.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', handleResize);
     
     // Live chart updates
     const chartInterval = setInterval(() => {
@@ -661,6 +703,7 @@ function App() {
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleResize);
       clearInterval(chartInterval);
     };
   }, []);
@@ -1718,7 +1761,7 @@ describe('${baseName} Suite', () => {
 
                 {/* Workspace display toggle canvas tabs & Layout resize actions */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {workbenchWidth !== 'hidden' && (
+                  {!isHidden && (
                     <div className="workspace-canvas-tabs" style={{ display: 'flex', background: 'rgba(255,255,255,0.02)', padding: '2px', borderRadius: '4px', border: '1px solid rgba(255, 255, 255, 0.05)', gap: '4px' }}>
                       <button
                         onClick={() => setCanvasTab('inspector')}
@@ -1778,15 +1821,15 @@ describe('${baseName} Suite', () => {
                   <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '2px', borderRadius: '4px', border: '1px solid rgba(255, 255, 255, 0.05)', gap: '2px' }}>
                     <button
                       onClick={() => setWorkbenchWidth('wide')}
-                      className={`preset-tab-btn ${workbenchWidth === 'wide' ? 'active' : ''}`}
+                      className={`preset-tab-btn ${workbenchWidth === 'wide' && !isHidden ? 'active' : ''}`}
                       style={{
                         padding: '3px 6px',
                         fontSize: '8px',
                         fontFamily: 'var(--font-mono)',
                         borderRadius: '3px',
-                        background: workbenchWidth === 'wide' ? 'rgba(0, 245, 255, 0.1)' : 'transparent',
+                        background: workbenchWidth === 'wide' && !isHidden ? 'rgba(0, 245, 255, 0.1)' : 'transparent',
                         border: 'none',
-                        color: workbenchWidth === 'wide' ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+                        color: workbenchWidth === 'wide' && !isHidden ? 'var(--accent-cyan)' : 'var(--text-secondary)',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
@@ -1800,15 +1843,15 @@ describe('${baseName} Suite', () => {
                     
                     <button
                       onClick={() => setWorkbenchWidth('narrow')}
-                      className={`preset-tab-btn ${workbenchWidth === 'narrow' ? 'active' : ''}`}
+                      className={`preset-tab-btn ${workbenchWidth === 'narrow' && !isHidden ? 'active' : ''}`}
                       style={{
                         padding: '3px 6px',
                         fontSize: '8px',
                         fontFamily: 'var(--font-mono)',
                         borderRadius: '3px',
-                        background: workbenchWidth === 'narrow' ? 'rgba(0, 245, 255, 0.1)' : 'transparent',
+                        background: workbenchWidth === 'narrow' && !isHidden ? 'rgba(0, 245, 255, 0.1)' : 'transparent',
                         border: 'none',
-                        color: workbenchWidth === 'narrow' ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+                        color: workbenchWidth === 'narrow' && !isHidden ? 'var(--accent-cyan)' : 'var(--text-secondary)',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
@@ -1821,25 +1864,25 @@ describe('${baseName} Suite', () => {
                     </button>
 
                     <button
-                      onClick={() => setWorkbenchWidth(workbenchWidth === 'hidden' ? 'wide' : 'hidden')}
-                      className={`preset-tab-btn ${workbenchWidth === 'hidden' ? 'active' : ''}`}
+                      onClick={() => setWorkbenchWidth(isHidden ? 'wide' : 'hidden')}
+                      className={`preset-tab-btn ${isHidden ? 'active' : ''}`}
                       style={{
                         padding: '3px 6px',
                         fontSize: '8px',
                         fontFamily: 'var(--font-mono)',
                         borderRadius: '3px',
-                        background: workbenchWidth === 'hidden' ? 'rgba(239, 68, 68, 0.15)' : 'transparent',
+                        background: isHidden ? 'rgba(239, 68, 68, 0.15)' : 'transparent',
                         border: 'none',
-                        color: workbenchWidth === 'hidden' ? '#ef4444' : 'var(--text-secondary)',
+                        color: isHidden ? '#ef4444' : 'var(--text-secondary)',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '3px'
                       }}
-                      title={workbenchWidth === 'hidden' ? "Show Workbench" : "Hide Workbench"}
+                      title={isHidden ? "Show Workbench" : "Hide Workbench"}
                     >
-                      {workbenchWidth === 'hidden' ? <PanelRightOpen className="w-3 h-3 text-cyan-400" /> : <PanelRightClose className="w-3 h-3 text-red-400" />}
-                      <span>{workbenchWidth === 'hidden' ? "SHOW" : "HIDE"}</span>
+                      {isHidden ? <PanelRightOpen className="w-3 h-3 text-cyan-400" /> : <PanelRightClose className="w-3 h-3 text-red-400" />}
+                      <span>{isHidden ? "SHOW" : "HIDE"}</span>
                     </button>
                   </div>
                 </div>
@@ -1851,8 +1894,9 @@ describe('${baseName} Suite', () => {
                 
                 {/* LEFT PANE: Syntax Highlighted Original Source Code Editor */}
                 <div style={{ 
-                  flex: workbenchWidth === 'hidden' ? 1 : workbenchWidth === 'narrow' ? 1.55 : 1.1, 
-                  borderRight: workbenchWidth !== 'hidden' ? '1px solid rgba(255, 255, 255, 0.05)' : 'none', 
+                  flex: flexShares.left, 
+                  minWidth: 0,
+                  borderRight: !isHidden ? '1px solid rgba(255, 255, 255, 0.05)' : 'none', 
                   display: 'flex', 
                   flexDirection: 'column', 
                   background: '#08090c', 
@@ -1929,15 +1973,15 @@ describe('${baseName} Suite', () => {
                 </div>
 
                 {/* RIGHT PANE: Interactive AI Workbench Tools */}
-                {workbenchWidth !== 'hidden' && (
-                  <div style={{ 
-                    flex: workbenchWidth === 'narrow' ? 0.45 : 0.9, 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    background: '#090a0f', 
-                    overflow: 'hidden',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                  }}>
+                <div style={{ 
+                  flex: flexShares.right, 
+                  minWidth: isHidden ? 0 : '240px',
+                  display: isHidden ? 'none' : 'flex', 
+                  flexDirection: 'column', 
+                  background: '#090a0f', 
+                  overflow: 'hidden',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                }}>
                   
                   {/* Tab views nested stacking */}
                   
@@ -2226,7 +2270,7 @@ describe('${baseName} Suite', () => {
                     </div>
                   )}
 
-                </div>)}
+                </div>
 
               </div>
 
