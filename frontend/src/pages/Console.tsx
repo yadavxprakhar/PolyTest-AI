@@ -951,6 +951,7 @@ function Console() {
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(SANDBOX_FILES[1]); // PaymentService.ts
   const [openEditors, setOpenEditors] = useState<FileItem[]>([SANDBOX_FILES[1]]);
   const [explorerMenuOpen, setExplorerMenuOpen] = useState(false);
+  const [explorerView, setExplorerView] = useState<'openEditors' | 'folder' | 'project' | 'builds'>('folder');
 
   const handleCloseEditor = (e: React.MouseEvent, fileToClose: FileItem) => {
     e.stopPropagation();
@@ -2274,107 +2275,227 @@ function Console() {
                       boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
                       minWidth: '120px'
                     }}>
-                      <div className="context-menu-item" style={{ padding: '6px 12px', fontSize: '12px', color: '#ccc', cursor: 'pointer', borderRadius: '2px' }} onClick={() => setExplorerMenuOpen(false)}>Open Editors</div>
-                      <div className="context-menu-item" style={{ padding: '6px 12px', fontSize: '12px', color: '#ccc', cursor: 'pointer', borderRadius: '2px' }} onClick={() => setExplorerMenuOpen(false)}>Folder</div>
-                      <div className="context-menu-item" style={{ padding: '6px 12px', fontSize: '12px', color: '#ccc', cursor: 'pointer', borderRadius: '2px' }} onClick={() => setExplorerMenuOpen(false)}>Project</div>
-                      <div className="context-menu-item" style={{ padding: '6px 12px', fontSize: '12px', color: '#ccc', cursor: 'pointer', borderRadius: '2px' }} onClick={() => setExplorerMenuOpen(false)}>Builds</div>
+                      <div className="context-menu-item" style={{ padding: '6px 12px', fontSize: '12px', color: '#ccc', cursor: 'pointer', borderRadius: '2px' }} onClick={() => { setExplorerView('openEditors'); setExplorerMenuOpen(false); }}>Open Editors</div>
+                      <div className="context-menu-item" style={{ padding: '6px 12px', fontSize: '12px', color: '#ccc', cursor: 'pointer', borderRadius: '2px' }} onClick={() => { setExplorerView('folder'); setExplorerMenuOpen(false); }}>Folder</div>
+                      <div className="context-menu-item" style={{ padding: '6px 12px', fontSize: '12px', color: '#ccc', cursor: 'pointer', borderRadius: '2px' }} onClick={() => { setExplorerView('project'); setExplorerMenuOpen(false); }}>Project</div>
+                      <div className="context-menu-item" style={{ padding: '6px 12px', fontSize: '12px', color: '#ccc', cursor: 'pointer', borderRadius: '2px' }} onClick={() => { setExplorerView('builds'); setExplorerMenuOpen(false); }}>Builds</div>
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="flex-row-align" style={{ justifyContent: 'space-between', width: '100%', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px', paddingLeft: '4px', paddingRight: '4px' }}>
-                <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <FolderOpen className="w-3.5 h-3.5 text-cyan-400" />
-                  Files Explorer
-                </span>
-                
-                <div style={{ display: 'flex', gap: files.length > 0 ? '4px' : '10px', alignItems: 'center' }}>
-                  {files.length > 0 ? (
-                    <>
-                      <button 
-                        onClick={() => fileInputRef.current?.click()}
-                        style={{ color: '#888888', background: 'none', border: 'none', cursor: 'pointer', outline: 'none', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        title="New File"
-                        onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
-                        onMouseLeave={(e) => e.currentTarget.style.color = '#888888'}
-                      >
-                        <FilePlus className="w-4 h-4" strokeWidth={1.5} />
-                      </button>
-                      <button 
-                        onClick={() => folderInputRef.current?.click()}
-                        style={{ color: '#888888', background: 'none', border: 'none', cursor: 'pointer', outline: 'none', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        title="New Folder"
-                        onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
-                        onMouseLeave={(e) => e.currentTarget.style.color = '#888888'}
-                      >
-                        <FolderPlus className="w-4 h-4" strokeWidth={1.5} />
-                      </button>
-                      <button 
-                        onClick={triggerAutoDetect}
-                        disabled={isScanning}
-                        style={{ color: '#888888', background: 'none', border: 'none', cursor: 'pointer', outline: 'none', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        title="Refresh Explorer"
-                        onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
-                        onMouseLeave={(e) => e.currentTarget.style.color = '#888888'}
-                      >
-                        <RefreshCw className={`w-4 h-4 ${isScanning ? 'animate-spin' : ''}`} strokeWidth={1.5} />
-                      </button>
-                      <button 
-                        onClick={() => {}}
-                        style={{ color: '#888888', background: 'none', border: 'none', cursor: 'pointer', outline: 'none', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        title="Collapse All"
-                        onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
-                        onMouseLeave={(e) => e.currentTarget.style.color = '#888888'}
-                      >
-                        <ListCollapse className="w-4 h-4" strokeWidth={1.5} />
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button 
-                        onClick={() => fileInputRef.current?.click()}
-                        style={{ fontSize: '10px', color: 'var(--accent-green)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', outline: 'none' }}
-                      >
-                        <Plus className="w-3 h-3" />
-                        Add File
-                      </button>
-                      <button 
-                        onClick={triggerAutoDetect}
-                        disabled={isScanning}
-                        style={{ fontSize: '10px', color: 'var(--accent-cyan)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', outline: 'none' }}
-                      >
-                        <RefreshCw className={`w-3.5 h-3.5 ${isScanning ? 'animate-spin' : ''}`} />
-                        Sync
-                      </button>
-                    </>
-                  )}
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    onChange={handleNativeFileSelect} 
-                    style={{ display: 'none' }} 
-                  />
-                  <input 
-                    type="file" 
-                    ref={folderInputRef} 
-                    onChange={handleNativeFolderSelect} 
-                    style={{ display: 'none' }} 
-                    {...({ webkitdirectory: "", directory: "" } as any)}
-                  />
-                </div>
-              </div>
+              {explorerView === 'folder' && (
+                <>
+                  <div className="flex-row-align" style={{ justifyContent: 'space-between', width: '100%', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px', paddingLeft: '4px', paddingRight: '4px' }}>
+                    <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <FolderOpen className="w-3.5 h-3.5 text-cyan-400" />
+                      Files Explorer
+                    </span>
+                    
+                    <div style={{ display: 'flex', gap: files.length > 0 ? '4px' : '10px', alignItems: 'center' }}>
+                      {files.length > 0 ? (
+                        <>
+                          <button 
+                            onClick={() => fileInputRef.current?.click()}
+                            style={{ color: '#888888', background: 'none', border: 'none', cursor: 'pointer', outline: 'none', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            title="New File"
+                            onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
+                            onMouseLeave={(e) => e.currentTarget.style.color = '#888888'}
+                          >
+                            <FilePlus className="w-4 h-4" strokeWidth={1.5} />
+                          </button>
+                          <button 
+                            onClick={() => folderInputRef.current?.click()}
+                            style={{ color: '#888888', background: 'none', border: 'none', cursor: 'pointer', outline: 'none', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            title="New Folder"
+                            onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
+                            onMouseLeave={(e) => e.currentTarget.style.color = '#888888'}
+                          >
+                            <FolderPlus className="w-4 h-4" strokeWidth={1.5} />
+                          </button>
+                          <button 
+                            onClick={triggerAutoDetect}
+                            disabled={isScanning}
+                            style={{ color: '#888888', background: 'none', border: 'none', cursor: 'pointer', outline: 'none', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            title="Refresh Explorer"
+                            onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
+                            onMouseLeave={(e) => e.currentTarget.style.color = '#888888'}
+                          >
+                            <RefreshCw className={`w-4 h-4 ${isScanning ? 'animate-spin' : ''}`} strokeWidth={1.5} />
+                          </button>
+                          <button 
+                            onClick={() => {}}
+                            style={{ color: '#888888', background: 'none', border: 'none', cursor: 'pointer', outline: 'none', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            title="Collapse All"
+                            onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
+                            onMouseLeave={(e) => e.currentTarget.style.color = '#888888'}
+                          >
+                            <ListCollapse className="w-4 h-4" strokeWidth={1.5} />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button 
+                            onClick={() => fileInputRef.current?.click()}
+                            style={{ fontSize: '10px', color: 'var(--accent-green)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', outline: 'none' }}
+                          >
+                            <Plus className="w-3 h-3" />
+                            Add File
+                          </button>
+                          <button 
+                            onClick={triggerAutoDetect}
+                            disabled={isScanning}
+                            style={{ fontSize: '10px', color: 'var(--accent-cyan)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', outline: 'none' }}
+                          >
+                            <RefreshCw className={`w-3.5 h-3.5 ${isScanning ? 'animate-spin' : ''}`} />
+                            Sync
+                          </button>
+                        </>
+                      )}
+                      <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        onChange={handleNativeFileSelect} 
+                        style={{ display: 'none' }} 
+                      />
+                      <input 
+                        type="file" 
+                        ref={folderInputRef} 
+                        onChange={handleNativeFolderSelect} 
+                        style={{ display: 'none' }} 
+                        {...({ webkitdirectory: "", directory: "" } as any)}
+                      />
+                    </div>
+                  </div>
+    
+                  {/* Directory Tree */}
+                  <div className="file-tree-container" style={{ width: '100%', overflowY: 'auto', maxHeight: '350px', paddingRight: '4px' }}>
+                    {(() => {
+                      const filteredFiles = files.filter(file => 
+                        file.file_path.toLowerCase().includes(searchQuery.toLowerCase())
+                      );
+                      const treeRoot = buildFileTree(filteredFiles);
+                      return renderTreeNode(treeRoot);
+                    })()}
+                  </div>
+                </>
+              )}
 
-              {/* Directory Tree */}
-              <div className="file-tree-container" style={{ width: '100%', overflowY: 'auto', maxHeight: '350px', paddingRight: '4px' }}>
-                {(() => {
-                  const filteredFiles = files.filter(file => 
-                    file.file_path.toLowerCase().includes(searchQuery.toLowerCase())
-                  );
-                  const treeRoot = buildFileTree(filteredFiles);
-                  return renderTreeNode(treeRoot);
-                })()}
-              </div>
+              {explorerView === 'openEditors' && (
+                <>
+                  <div className="flex-row-align" style={{ justifyContent: 'space-between', width: '100%', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px', paddingLeft: '4px', paddingRight: '4px' }}>
+                    <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <FileCode className="w-3.5 h-3.5 text-cyan-400" />
+                      Open Editors
+                    </span>
+                  </div>
+                  <div style={{ padding: '8px 4px', display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto', maxHeight: '350px' }}>
+                    {openEditors.map(file => (
+                      <div 
+                        key={file.file_path}
+                        onClick={() => setSelectedFile(file)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '6px 8px',
+                          fontSize: '11px',
+                          fontFamily: 'var(--font-mono)',
+                          color: selectedFile?.file_path === file.file_path ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+                          background: selectedFile?.file_path === file.file_path ? 'rgba(55,148,255,0.1)' : 'transparent',
+                          cursor: 'pointer',
+                          borderRadius: '4px'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <FileCode className="w-3.5 h-3.5" />
+                          <span>{file.file_path.split('/').pop()}</span>
+                        </div>
+                        <X 
+                          className="w-3 h-3" 
+                          style={{ cursor: 'pointer', opacity: 0.6 }} 
+                          onClick={(e) => handleCloseEditor(e, file)}
+                          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.6'}
+                        />
+                      </div>
+                    ))}
+                    {openEditors.length === 0 && (
+                      <div style={{ padding: '12px', fontSize: '11px', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                        No editors open
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {explorerView === 'project' && (
+                <>
+                  <div className="flex-row-align" style={{ justifyContent: 'space-between', width: '100%', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px', paddingLeft: '4px', paddingRight: '4px' }}>
+                    <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Briefcase className="w-3.5 h-3.5 text-cyan-400" />
+                      Project Info
+                    </span>
+                  </div>
+                  <div style={{ padding: '16px 8px', fontSize: '11px', color: 'var(--text-secondary)', fontFamily: 'var(--font-sans)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div>
+                      <strong style={{ color: '#fff', fontSize: '12px', display: 'block', marginBottom: '4px' }}>Workspace</strong>
+                      <div style={{ fontFamily: 'var(--font-mono)', background: 'rgba(255,255,255,0.02)', padding: '6px', borderRadius: '4px', wordBreak: 'break-all' }}>
+                        {projectRoot}
+                      </div>
+                    </div>
+                    <div>
+                      <strong style={{ color: '#fff', fontSize: '12px', display: 'block', marginBottom: '4px' }}>Environment status</strong>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: isBackendOnline ? 'var(--accent-cyan)' : 'var(--accent-yellow)' }}>
+                        <span className={`nav-status-dot ${isBackendOnline ? 'active' : 'sandbox'}`} />
+                        {isBackendOnline ? 'Connected (Live Engine)' : 'Offline Sandbox Mode'}
+                      </div>
+                    </div>
+                    <div>
+                      <strong style={{ color: '#fff', fontSize: '12px', display: 'block', marginBottom: '4px' }}>Analysis Settings</strong>
+                      <ul style={{ margin: 0, paddingLeft: '16px', listStyleType: 'circle' }}>
+                        <li>Coverage Target: {coverageTarget}%</li>
+                        <li>Temperature: {temperature}</li>
+                        <li>Model: {selectedModel}</li>
+                      </ul>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {explorerView === 'builds' && (
+                <>
+                  <div className="flex-row-align" style={{ justifyContent: 'space-between', width: '100%', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px', paddingLeft: '4px', paddingRight: '4px' }}>
+                    <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Terminal className="w-3.5 h-3.5 text-cyan-400" />
+                      Recent Builds
+                    </span>
+                  </div>
+                  <div style={{ padding: '12px 4px', display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', maxHeight: '350px' }}>
+                    <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', padding: '8px', borderRadius: '4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                        <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Build #492 (Local)</span>
+                        <span style={{ fontSize: '9px', color: 'var(--accent-green)', padding: '2px 4px', background: 'rgba(0,255,0,0.1)', borderRadius: '2px' }}>SUCCESS</span>
+                      </div>
+                      <div style={{ fontSize: '9px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>Dry-run compilation passed (12ms)</div>
+                    </div>
+                    <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', padding: '8px', borderRadius: '4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                        <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Build #491 (Local)</span>
+                        <span style={{ fontSize: '9px', color: 'var(--accent-yellow)', padding: '2px 4px', background: 'rgba(255,200,0,0.1)', borderRadius: '2px' }}>WARNING</span>
+                      </div>
+                      <div style={{ fontSize: '9px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>Linter reported 2 warnings (Unused imports)</div>
+                    </div>
+                    <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', padding: '8px', borderRadius: '4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                        <span style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>Build #490 (Local)</span>
+                        <span style={{ fontSize: '9px', color: 'var(--accent-red)', padding: '2px 4px', background: 'rgba(255,0,0,0.1)', borderRadius: '2px' }}>FAILED</span>
+                      </div>
+                      <div style={{ fontSize: '9px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>Syntax error in PaymentGateway.ts</div>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* Historical Coverage Performance Mini-Charts Analytics */}
               <div className="coverage-analytics-box" style={{ width: '100%', borderTop: '1px solid var(--border-color)', paddingTop: '14px', marginTop: '8px' }}>
