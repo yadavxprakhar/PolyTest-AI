@@ -28,7 +28,15 @@ import {
   PanelRightOpen,
   FilePlus,
   FolderPlus,
-  ListCollapse
+  ListCollapse,
+  PanelLeft,
+  PanelBottom,
+  PanelRight,
+  Layout,
+  GitBranch,
+  Bug,
+  Blocks,
+  CircleUser
 } from 'lucide-react';
 
 
@@ -2093,6 +2101,71 @@ function Console() {
             exit={{ opacity: 0, y: -15, scale: 0.98 }}
             transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
           >
+            {/* VS Code Style Title Bar */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              height: '38px',
+              background: '#1e1e1e',
+              borderBottom: '1px solid rgba(255,255,255,0.05)',
+              padding: '0 12px',
+              width: '100%',
+              boxSizing: 'border-box'
+            }}>
+              {/* Window Controls */}
+              <div style={{ display: 'flex', alignItems: 'center', width: '200px' }}>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#FF5F56' }} />
+                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#FFBD2E' }} />
+                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#27C93F' }} />
+                </div>
+              </div>
+
+              {/* Center Search Bar Area */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, justifyContent: 'center' }}>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <ArrowLeft className="w-4 h-4 text-gray-500" style={{ color: '#888', cursor: 'pointer' }} />
+                  <ArrowRight className="w-4 h-4 text-gray-500" style={{ color: '#555', cursor: 'default' }} />
+                </div>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  background: 'rgba(255,255,255,0.08)', 
+                  border: '1px solid rgba(255,255,255,0.1)', 
+                  borderRadius: '6px',
+                  padding: '4px 12px',
+                  width: '400px',
+                  maxWidth: '50vw',
+                  gap: '8px'
+                }}>
+                  <Search className="w-3.5 h-3.5" style={{ color: '#888' }} />
+                  <input 
+                    type="text" 
+                    placeholder={selectedFile ? selectedFile.file_path.split('/').pop() : (projectRoot ? projectRoot.split('/').pop() : "Workspace")}
+                    style={{ 
+                      background: 'transparent', 
+                      border: 'none', 
+                      outline: 'none', 
+                      color: '#fff', 
+                      fontSize: '12px',
+                      width: '100%',
+                      fontFamily: 'var(--font-sans)',
+                      textAlign: 'center'
+                    }} 
+                  />
+                </div>
+              </div>
+
+              {/* Right Layout Controls */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '200px', justifyContent: 'flex-end', color: '#888' }}>
+                <PanelLeft className="w-4 h-4" style={{ cursor: 'pointer' }} />
+                <PanelBottom className="w-4 h-4" style={{ cursor: 'pointer' }} />
+                <PanelRight className="w-4 h-4" style={{ cursor: 'pointer' }} />
+                <Layout className="w-4 h-4" style={{ cursor: 'pointer' }} />
+              </div>
+            </div>
+
             {/* Header HUD Navigation */}
             <header className="console-hud-bar">
               <div className="console-hud-left">
@@ -2170,6 +2243,31 @@ function Console() {
           {/* Main Dashboard HUD Content */}
           <main className="workspace-grid-crisp">
             
+            {/* Left Activity Bar (VS Code Style) */}
+            <div style={{
+              width: '48px',
+              height: '100%',
+              background: '#181818',
+              borderRight: '1px solid rgba(255,255,255,0.05)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '10px 0'
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
+                <Copy className="w-6 h-6 text-cyan-400" strokeWidth={1.5} style={{ cursor: 'pointer' }} />
+                <Search className="w-6 h-6 text-gray-500" strokeWidth={1.5} style={{ cursor: 'pointer', color: '#888' }} />
+                <GitBranch className="w-6 h-6 text-gray-500" strokeWidth={1.5} style={{ cursor: 'pointer', color: '#888' }} />
+                <Bug className="w-6 h-6 text-gray-500" strokeWidth={1.5} style={{ cursor: 'pointer', color: '#888' }} />
+                <Blocks className="w-6 h-6 text-gray-500" strokeWidth={1.5} style={{ cursor: 'pointer', color: '#888' }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
+                <CircleUser className="w-6 h-6 text-gray-500" strokeWidth={1.5} style={{ cursor: 'pointer', color: '#888' }} />
+                <Settings className="w-6 h-6 text-gray-500" strokeWidth={1.5} style={{ cursor: 'pointer', color: '#888' }} />
+              </div>
+            </div>
+
             {/* Left Side: Directory folders & Mini-charts */}
             <section className="ide-explorer-panel crisp-panel">
               <div className="sidebar-brand-header">
