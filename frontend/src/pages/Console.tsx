@@ -2154,59 +2154,35 @@ function Console() {
                 </div>
               </div>
 
-              {/* Right Spacer */}
-              <div style={{ display: 'flex', alignItems: 'center', width: '200px', justifyContent: 'flex-end' }}>
-              </div>
-            </div>
-
-            {/* Header HUD Navigation */}
-            <header className="console-hud-bar">
-              <div className="console-hud-left">
-              </div>
-
-            {/* Diagnostics HUD */}
-            <div className="console-hud-right">
-              <div className="diagnostics-banner">
-                <Activity className="w-3.5 h-3.5 text-[#475569]" />
-                <div className="flex-row-align" style={{ gap: '6px' }}>
-                  <span className={`nav-status-dot ${isBackendOnline ? 'active' : 'sandbox'}`} />
-                  <span style={{ color: isBackendOnline ? 'var(--accent-cyan)' : 'var(--accent-yellow)' }}>
-                    {isBackendOnline ? 'ONLINE' : 'OFFLINE (SANDBOX)'}
-                  </span>
+              {/* Right Side (Status & Profile) */}
+              <div style={{ display: 'flex', alignItems: 'center', width: '200px', justifyContent: 'flex-end', gap: '12px' }}>
+                {!isBackendOnline && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px', color: 'var(--accent-yellow)', fontWeight: 600, letterSpacing: '0.5px' }}>
+                    <span className="nav-status-dot sandbox" />
+                    OFFLINE (SANDBOX)
+                  </div>
+                )}
+                <div 
+                  onClick={() => navigate('/login')}
+                  style={{
+                    width: '24px', 
+                    height: '24px', 
+                    borderRadius: '50%', 
+                    background: '#333', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    cursor: 'pointer',
+                    border: '1px solid rgba(255,255,255,0.1)'
+                  }}
+                  title="Login"
+                >
+                  <CircleUser className="w-3.5 h-3.5" style={{ color: '#aaa' }} />
                 </div>
               </div>
-              
-              <button 
-                onClick={checkHealth}
-                className="icon-button-hud"
-                title="Diagnose connection"
-              >
-                <RefreshCw className="w-4 h-4" />
-              </button>
-
-              <div style={{ height: '24px', width: '1px', background: 'rgba(255,255,255,0.06)' }} />
-
-              <button 
-                onClick={() => navigate('/login')}
-                style={{
-                  background: '#ffffff',
-                  color: '#000000',
-                  border: 'none',
-                  padding: '6px 16px',
-                  borderRadius: '4px',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  letterSpacing: '0.5px',
-                  transition: 'opacity 0.2s ease'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
-                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-              >
-                LOGIN
-              </button>
             </div>
-          </header>
+
+
 
           {/* Main Dashboard HUD Content */}
           <main className="workspace-grid-crisp">
