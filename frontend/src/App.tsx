@@ -25,7 +25,11 @@ import {
   Search,
   Settings,
   Terminal,
-  Briefcase
+  Briefcase,
+  Layout,
+  Columns,
+  PanelRightClose,
+  PanelRightOpen
 } from 'lucide-react';
 
 
@@ -586,6 +590,7 @@ function App() {
 
   // Terminal Tab State: 'execution' | 'metrics' | 'warnings'
   const [terminalTab, setTerminalTab] = useState<'execution' | 'metrics' | 'warnings'>('execution');
+  const [workbenchWidth, setWorkbenchWidth] = useState<'wide' | 'narrow' | 'hidden'>('wide');
 
   // Terminal & Run Outcomes
   const [terminalLogs, setTerminalLogs] = useState<string[]>([
@@ -1711,59 +1716,132 @@ describe('${baseName} Suite', () => {
                   </div>
                 </div>
 
-                {/* Workspace display toggle canvas tabs */}
-                <div className="workspace-canvas-tabs" style={{ display: 'flex', background: 'rgba(255,255,255,0.02)', padding: '2px', borderRadius: '4px', border: '1px solid rgba(255, 255, 255, 0.05)', gap: '4px' }}>
-                  <button
-                    onClick={() => setCanvasTab('inspector')}
-                    className={`preset-tab-btn ${canvasTab === 'inspector' ? 'active' : ''}`}
-                    style={{ 
-                      padding: '3px 8px', 
-                      fontSize: '9px', 
-                      fontFamily: 'var(--font-mono)', 
-                      borderRadius: '3px', 
-                      position: 'relative', 
-                      background: canvasTab === 'inspector' ? 'rgba(255,255,255,0.05)' : 'transparent', 
-                      border: 'none', 
-                      color: canvasTab === 'inspector' ? '#fff' : 'var(--text-secondary)',
-                      cursor: 'pointer' 
-                    }}
-                  >
-                    AST INSPECTOR
-                  </button>
-                  <button
-                    onClick={() => setCanvasTab('linter')}
-                    className={`preset-tab-btn ${canvasTab === 'linter' ? 'active' : ''}`}
-                    style={{ 
-                      padding: '3px 8px', 
-                      fontSize: '9px', 
-                      fontFamily: 'var(--font-mono)', 
-                      borderRadius: '3px', 
-                      position: 'relative', 
-                      background: canvasTab === 'linter' ? 'rgba(255,255,255,0.05)' : 'transparent', 
-                      border: 'none', 
-                      color: canvasTab === 'linter' ? '#fff' : 'var(--text-secondary)',
-                      cursor: 'pointer' 
-                    }}
-                  >
-                    DRYCOMPILE LINTER
-                  </button>
-                  <button
-                    onClick={() => setCanvasTab('code')}
-                    className={`preset-tab-btn ${canvasTab === 'code' ? 'active' : ''}`}
-                    style={{ 
-                      padding: '3px 8px', 
-                      fontSize: '9px', 
-                      fontFamily: 'var(--font-mono)', 
-                      borderRadius: '3px', 
-                      position: 'relative', 
-                      background: canvasTab === 'code' ? 'rgba(255,255,255,0.05)' : 'transparent', 
-                      border: 'none', 
-                      color: canvasTab === 'code' ? '#fff' : 'var(--text-secondary)',
-                      cursor: 'pointer' 
-                    }}
-                  >
-                    CODE PREVIEW
-                  </button>
+                {/* Workspace display toggle canvas tabs & Layout resize actions */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {workbenchWidth !== 'hidden' && (
+                    <div className="workspace-canvas-tabs" style={{ display: 'flex', background: 'rgba(255,255,255,0.02)', padding: '2px', borderRadius: '4px', border: '1px solid rgba(255, 255, 255, 0.05)', gap: '4px' }}>
+                      <button
+                        onClick={() => setCanvasTab('inspector')}
+                        className={`preset-tab-btn ${canvasTab === 'inspector' ? 'active' : ''}`}
+                        style={{ 
+                          padding: '3px 8px', 
+                          fontSize: '9px', 
+                          fontFamily: 'var(--font-mono)', 
+                          borderRadius: '3px', 
+                          position: 'relative', 
+                          background: canvasTab === 'inspector' ? 'rgba(255,255,255,0.05)' : 'transparent', 
+                          border: 'none', 
+                          color: canvasTab === 'inspector' ? '#fff' : 'var(--text-secondary)',
+                          cursor: 'pointer' 
+                        }}
+                      >
+                        AST INSPECTOR
+                      </button>
+                      <button
+                        onClick={() => setCanvasTab('linter')}
+                        className={`preset-tab-btn ${canvasTab === 'linter' ? 'active' : ''}`}
+                        style={{ 
+                          padding: '3px 8px', 
+                          fontSize: '9px', 
+                          fontFamily: 'var(--font-mono)', 
+                          borderRadius: '3px', 
+                          position: 'relative', 
+                          background: canvasTab === 'linter' ? 'rgba(255,255,255,0.05)' : 'transparent', 
+                          border: 'none', 
+                          color: canvasTab === 'linter' ? '#fff' : 'var(--text-secondary)',
+                          cursor: 'pointer' 
+                        }}
+                      >
+                        DRYCOMPILE LINTER
+                      </button>
+                      <button
+                        onClick={() => setCanvasTab('code')}
+                        className={`preset-tab-btn ${canvasTab === 'code' ? 'active' : ''}`}
+                        style={{ 
+                          padding: '3px 8px', 
+                          fontSize: '9px', 
+                          fontFamily: 'var(--font-mono)', 
+                          borderRadius: '3px', 
+                          position: 'relative', 
+                          background: canvasTab === 'code' ? 'rgba(255,255,255,0.05)' : 'transparent', 
+                          border: 'none', 
+                          color: canvasTab === 'code' ? '#fff' : 'var(--text-secondary)',
+                          cursor: 'pointer' 
+                        }}
+                      >
+                        CODE PREVIEW
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Layout Size controls */}
+                  <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '2px', borderRadius: '4px', border: '1px solid rgba(255, 255, 255, 0.05)', gap: '2px' }}>
+                    <button
+                      onClick={() => setWorkbenchWidth('wide')}
+                      className={`preset-tab-btn ${workbenchWidth === 'wide' ? 'active' : ''}`}
+                      style={{
+                        padding: '3px 6px',
+                        fontSize: '8px',
+                        fontFamily: 'var(--font-mono)',
+                        borderRadius: '3px',
+                        background: workbenchWidth === 'wide' ? 'rgba(0, 245, 255, 0.1)' : 'transparent',
+                        border: 'none',
+                        color: workbenchWidth === 'wide' ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '3px'
+                      }}
+                      title="Split View (Wide Workbench)"
+                    >
+                      <Layout className="w-3 h-3" />
+                      <span>55:45</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => setWorkbenchWidth('narrow')}
+                      className={`preset-tab-btn ${workbenchWidth === 'narrow' ? 'active' : ''}`}
+                      style={{
+                        padding: '3px 6px',
+                        fontSize: '8px',
+                        fontFamily: 'var(--font-mono)',
+                        borderRadius: '3px',
+                        background: workbenchWidth === 'narrow' ? 'rgba(0, 245, 255, 0.1)' : 'transparent',
+                        border: 'none',
+                        color: workbenchWidth === 'narrow' ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '3px'
+                      }}
+                      title="Narrow Workbench View"
+                    >
+                      <Columns className="w-3 h-3" />
+                      <span>75:25</span>
+                    </button>
+
+                    <button
+                      onClick={() => setWorkbenchWidth(workbenchWidth === 'hidden' ? 'wide' : 'hidden')}
+                      className={`preset-tab-btn ${workbenchWidth === 'hidden' ? 'active' : ''}`}
+                      style={{
+                        padding: '3px 6px',
+                        fontSize: '8px',
+                        fontFamily: 'var(--font-mono)',
+                        borderRadius: '3px',
+                        background: workbenchWidth === 'hidden' ? 'rgba(239, 68, 68, 0.15)' : 'transparent',
+                        border: 'none',
+                        color: workbenchWidth === 'hidden' ? '#ef4444' : 'var(--text-secondary)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '3px'
+                      }}
+                      title={workbenchWidth === 'hidden' ? "Show Workbench" : "Hide Workbench"}
+                    >
+                      {workbenchWidth === 'hidden' ? <PanelRightOpen className="w-3 h-3 text-cyan-400" /> : <PanelRightClose className="w-3 h-3 text-red-400" />}
+                      <span>{workbenchWidth === 'hidden' ? "SHOW" : "HIDE"}</span>
+                    </button>
+                  </div>
                 </div>
 
               </div>
@@ -1773,12 +1851,13 @@ describe('${baseName} Suite', () => {
                 
                 {/* LEFT PANE: Syntax Highlighted Original Source Code Editor */}
                 <div style={{ 
-                  flex: 1.1, 
-                  borderRight: '1px solid rgba(255, 255, 255, 0.05)', 
+                  flex: workbenchWidth === 'hidden' ? 1 : workbenchWidth === 'narrow' ? 1.55 : 1.1, 
+                  borderRight: workbenchWidth !== 'hidden' ? '1px solid rgba(255, 255, 255, 0.05)' : 'none', 
                   display: 'flex', 
                   flexDirection: 'column', 
                   background: '#08090c', 
-                  overflow: 'hidden' 
+                  overflow: 'hidden',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                 }}>
                   {/* Breadcrumbs Row */}
                   <div className="editor-breadcrumbs" style={{ 
@@ -1850,13 +1929,15 @@ describe('${baseName} Suite', () => {
                 </div>
 
                 {/* RIGHT PANE: Interactive AI Workbench Tools */}
-                <div style={{ 
-                  flex: 0.9, 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  background: '#090a0f', 
-                  overflow: 'hidden' 
-                }}>
+                {workbenchWidth !== 'hidden' && (
+                  <div style={{ 
+                    flex: workbenchWidth === 'narrow' ? 0.45 : 0.9, 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    background: '#090a0f', 
+                    overflow: 'hidden',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                  }}>
                   
                   {/* Tab views nested stacking */}
                   
@@ -2145,7 +2226,7 @@ describe('${baseName} Suite', () => {
                     </div>
                   )}
 
-                </div>
+                </div>)}
 
               </div>
 
