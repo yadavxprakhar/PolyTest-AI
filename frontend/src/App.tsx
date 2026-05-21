@@ -5,7 +5,6 @@ import {
   Cpu, 
   RefreshCw, 
   Code,
-  FolderOpen, 
   Binary,
   FileCode,
   Bell,
@@ -20,13 +19,16 @@ import {
   Sliders,
   Copy,
   Download,
-  Plus,
   Search,
   Settings,
   Terminal,
   Briefcase,
   PanelRightClose,
-  PanelRightOpen
+  PanelRightOpen,
+  FilePlus,
+  FolderPlus,
+  ListCollapse,
+  ChevronDown
 } from 'lucide-react';
 
 
@@ -2093,19 +2095,21 @@ function App() {
                 />
               </div>
 
-              <div className="flex-row-align" style={{ justifyContent: 'space-between', width: '100%', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
-                <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <FolderOpen className="w-3.5 h-3.5 text-cyan-400" />
-                  Files Explorer
+              <div className="flex-row-align" style={{ justifyContent: 'space-between', width: '100%', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px', paddingLeft: '4px', paddingRight: '4px' }}>
+                <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ffffff', fontSize: '11px', fontWeight: 600, letterSpacing: '0.5px' }}>
+                  <ChevronDown className="w-3.5 h-3.5" style={{ color: '#888888' }} />
+                  PROJECT-VAULT
                 </span>
                 
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                   <button 
                     onClick={() => fileInputRef.current?.click()}
-                    style={{ fontSize: '10px', color: 'var(--accent-green)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', outline: 'none' }}
+                    style={{ color: '#888888', background: 'none', border: 'none', cursor: 'pointer', outline: 'none', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    title="New File"
+                    onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = '#888888'}
                   >
-                    <Plus className="w-3 h-3" />
-                    Add File
+                    <FilePlus className="w-4 h-4" strokeWidth={1.5} />
                   </button>
                   <input 
                     type="file" 
@@ -2114,12 +2118,32 @@ function App() {
                     style={{ display: 'none' }} 
                   />
                   <button 
+                    onClick={() => {}}
+                    style={{ color: '#888888', background: 'none', border: 'none', cursor: 'pointer', outline: 'none', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    title="New Folder"
+                    onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = '#888888'}
+                  >
+                    <FolderPlus className="w-4 h-4" strokeWidth={1.5} />
+                  </button>
+                  <button 
                     onClick={triggerAutoDetect}
                     disabled={isScanning}
-                    style={{ fontSize: '10px', color: 'var(--accent-cyan)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', outline: 'none' }}
+                    style={{ color: '#888888', background: 'none', border: 'none', cursor: 'pointer', outline: 'none', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    title="Refresh Explorer"
+                    onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = '#888888'}
                   >
-                    <RefreshCw className={`w-3.5 h-3.5 ${isScanning ? 'animate-spin' : ''}`} />
-                    Sync
+                    <RefreshCw className={`w-4 h-4 ${isScanning ? 'animate-spin' : ''}`} strokeWidth={1.5} />
+                  </button>
+                  <button 
+                    onClick={() => {}}
+                    style={{ color: '#888888', background: 'none', border: 'none', cursor: 'pointer', outline: 'none', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    title="Collapse All"
+                    onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = '#888888'}
+                  >
+                    <ListCollapse className="w-4 h-4" strokeWidth={1.5} />
                   </button>
                 </div>
               </div>
