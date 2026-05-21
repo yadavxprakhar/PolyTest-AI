@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { 
   Play, 
@@ -533,6 +533,352 @@ const slideUpItem: Variants = {
   }
 };
 
+interface MethodSignature {
+  name: string;
+  args: string;
+}
+
+interface ClassSignature {
+  name: string;
+  methods: MethodSignature[];
+}
+
+interface ParsedStructure {
+  classes: ClassSignature[];
+  functions: MethodSignature[];
+  imports: string[];
+  complexity: string;
+}
+
+function parseFileAST(_fileName: string, content: string): ParsedStructure {
+  const lines = content.split('\n');
+  const imports: string[] = [];
+  const classes: ClassSignature[] = [];
+  const functions: MethodSignature[] = [];
+  let complexity = 'Low (O(1))';
+
+  let loopCount = 0;
+  let hasNestedLoop = false;
+  let inLoop = false;
+
+  let currentClass: ClassSignature | null = null;
+  let braceDepth = 0;
+  let classBraceDepth = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+
+    if (!line || line.startsWith('//') || line.startsWith('/*') || line.startsWith('*') || line.startsWith('#')) {
+      continue;
+    }
+
+    if (/\b(for|while)\b/.test(line)) {
+      loopCount++;
+      if (inLoop) {
+        hasNestedLoop = true;
+      }
+      inLoop = true;
+    }
+    if (line.includes('}')) {
+      inLoop = false;
+    }
+
+    const jsImportMatch = line.match(/import\s+(?:[\w*\s{},]+from\s+)?['"]([^'"]+)['"]/);
+    if (jsImportMatch) {
+      const imp = jsImportMatch[1];
+      if (!imports.includes(imp)) imports.push(imp);
+    }
+    const pyImportMatch = line.match(/^import\s+([\w, ]+)/) || line.match(/^from\s+([\w.]+)\s+import/);
+    if (pyImportMatch) {
+      const imp = pyImportMatch[1].trim();
+      if (!imports.includes(imp)) imports.push(imp);
+    }
+    const goImportMatch = line.match(/^import\s+"([^"]+)"/);
+    if (goImportMatch) {
+      const imp = goImportMatch[1];
+      if (!imports.includes(imp)) imports.push(imp);
+    }
+    const javaImportMatch = line.match(/^import\s+([\w.]+);/);
+    if (javaImportMatch) {
+      const imp = javaImportMatch[1].split('.').pop() || '';
+      if (!imports.includes(imp)) imports.push(imp);
+    }
+    const cppImportMatch = line.match(/^#include\s*[<"]([^>"]+)[>"]/);
+    if (cppImportMatch) {
+      const imp = cppImportMatch[1];
+      if (!imports.includes(imp)) imports.push(imp);
+    }
+
+    const openBraces = (line.match(/{/g) || []).length;
+    const closeBraces = (line.match(/}/g) || []).length;
+    braceDepth += openBraces - closeBraces;
+
+    const classMatch = line.match(/\bclass\s+(\w+)/);
+    if (classMatch) {
+      const className = classMatch[1];
+      currentClass = { name: className, methods: [] };
+      classes.push(currentClass);
+      classBraceDepth = braceDepth - openBraces;
+      continue;
+    }
+
+    if (currentClass && braceDepth <= classBraceDepth) {
+      currentClass = null;
+    }
+
+    const pyClassMatch = line.match(/^class\s+(\w+)\s*(?:\([^)]*\))?:/);
+    if (pyClassMatch) {
+      const className = pyClassMatch[1];
+      currentClass = { name: className, methods: [] };
+      classes.push(currentClass);
+      continue;
+    }
+
+    const jsMethodMatch = line.match(/(?:public|private|protected|async|static|\s)*\b(\w+)\s*\(([^)]*)\)\s*(?::|{)/);
+    if (jsMethodMatch && !['if', 'for', 'while', 'switch', 'catch', 'function'].includes(jsMethodMatch[1])) {
+      const name = jsMethodMatch[1];
+      const args = `(${jsMethodMatch[2]})`;
+      if (currentClass) {
+        if (!currentClass.methods.some(m => m.name === name)) {
+          currentClass.methods.push({ name, args });
+        }
+      } else {
+        const globalFuncMatch = line.match(/\bfunction\s+(\w+)\s*\(([^)]*)\)/);
+        if (globalFuncMatch) {
+          const gName = globalFuncMatch[1];
+          const gArgs = `(${globalFuncMatch[2]})`;
+          if (!functions.some(f => f.name === gName)) {
+            functions.push({ name: gName, args: gArgs });
+          }
+        } else {
+          if (!functions.some(f => f.name === name)) {
+            functions.push({ name, args });
+          }
+        }
+      }
+    }
+
+    const pyFuncMatch = line.match(/^def\s+(\w+)\s*\(([^)]*)\)\s*:/) || line.match(/^\s+def\s+(\w+)\s*\(([^)]*)\)\s*:/);
+    if (pyFuncMatch) {
+      const name = pyFuncMatch[1];
+      const rawArgs = pyFuncMatch[2];
+      const args = `(${rawArgs.replace(/\bself\s*,?\s*/, '')})`;
+      if (currentClass && line.startsWith(' ')) {
+        if (!currentClass.methods.some(m => m.name === name)) {
+          currentClass.methods.push({ name, args });
+        }
+      } else {
+        if (!functions.some(f => f.name === name)) {
+          functions.push({ name, args });
+        }
+      }
+    }
+
+    const goMethodMatch = line.match(/^func\s+\(\s*[^)]+\s*\)\s*(\w+)\s*\(([^)]*)\)/);
+    if (goMethodMatch) {
+      const name = goMethodMatch[1];
+      const args = `(${goMethodMatch[2]})`;
+      const receiverMatch = line.match(/^func\s+\(\s*\w+\s+\*?(\w+)\s*\)/);
+      const structName = receiverMatch ? receiverMatch[1] : 'GoReceiver';
+      let structClass = classes.find(c => c.name === structName);
+      if (!structClass) {
+        structClass = { name: structName, methods: [] };
+        classes.push(structClass);
+      }
+      structClass.methods.push({ name, args });
+    } else {
+      const goFuncMatch = line.match(/^func\s+(\w+)\s*\(([^)]*)\)/);
+      if (goFuncMatch) {
+        const name = goFuncMatch[1];
+        const args = `(${goFuncMatch[2]})`;
+        if (!functions.some(f => f.name === name)) {
+          functions.push({ name, args });
+        }
+      }
+    }
+  }
+
+  if (hasNestedLoop) {
+    complexity = 'High (O(N^2))';
+  } else if (loopCount > 0) {
+    complexity = 'Medium (O(N))';
+  } else {
+    complexity = 'Low (O(1))';
+  }
+
+  if (classes.length === 0 && functions.length === 0) {
+    functions.push({ name: 'mainEntry', args: '() -> void' });
+  }
+
+  return {
+    classes,
+    functions,
+    imports: imports.length > 0 ? imports : ['standard_library'],
+    complexity
+  };
+}
+
+function generateMockTestSuite(fileName: string, language: string, _framework: string, structure: ParsedStructure): string {
+  const baseName = fileName.split('/').pop()?.split('.')[0] || 'Module';
+  
+  if (language === 'TypeScript' || language === 'JavaScript') {
+    let testCode = `// Automated unit tests generated by PolyTest AI for ${baseName}\n`;
+    structure.imports.forEach(imp => {
+      testCode += `import { ${imp} } from '${imp}';\n`;
+    });
+    testCode += `import { ${structure.classes[0]?.name || baseName} } from './${baseName}';\n\n`;
+    testCode += `describe('${structure.classes[0]?.name || baseName} Suite', () => {\n`;
+    
+    if (structure.classes.length > 0) {
+      testCode += `  let service: ${structure.classes[0].name};\n\n`;
+      testCode += `  beforeEach(() => {\n`;
+      testCode += `    service = new ${structure.classes[0].name}();\n`;
+      testCode += `  });\n\n`;
+      
+      structure.classes[0].methods.forEach(m => {
+        testCode += `  it('should test ${m.name} under default parameters', async () => {\n`;
+        testCode += `    // TODO: Verify arguments ${m.args}\n`;
+        testCode += `    // const result = await service.${m.name}();\n`;
+        testCode += `    // expect(result).toBeDefined();\n`;
+        testCode += `    expect(true).toBe(true);\n`;
+        testCode += `  });\n\n`;
+      });
+    }
+    
+    structure.functions.forEach(f => {
+      testCode += `  it('should test utility function ${f.name}', () => {\n`;
+      testCode += `    // const res = ${f.name}();\n`;
+      testCode += `    // expect(res).toBeTruthy();\n`;
+      testCode += `    expect(true).toBe(true);\n`;
+      testCode += `  });\n\n`;
+    });
+    
+    testCode += `});\n`;
+    return testCode;
+  }
+  
+  if (language === 'Python') {
+    let testCode = `# Automated unit tests generated by PolyTest AI for ${baseName}\n`;
+    testCode += `import pytest\n`;
+    testCode += `from .${baseName} import *\n\n`;
+    
+    if (structure.classes.length > 0) {
+      testCode += `class Test${structure.classes[0].name}:\n`;
+      testCode += `    @pytest.fixture\n`;
+      testCode += `    def service(self):\n`;
+      testCode += `        return ${structure.classes[0].name}()\n\n`;
+      
+      structure.classes[0].methods.forEach(m => {
+        testCode += `    def test_${m.name}(self, service):\n`;
+        testCode += `        # TODO: Test ${m.name} with arguments ${m.args}\n`;
+        testCode += `        assert True\n\n`;
+      });
+    }
+    
+    structure.functions.forEach(f => {
+      testCode += `def test_${f.name}():\n`;
+      testCode += `    # TODO: Test global function ${f.name}\n`;
+      testCode += `    assert True\n\n`;
+    });
+    
+    return testCode;
+  }
+
+  if (language === 'Go') {
+    let testCode = `// Automated unit tests generated by PolyTest AI for ${baseName}\n`;
+    testCode += `package ${baseName}_test\n\n`;
+    testCode += `import (\n`;
+    testCode += `\t"testing"\n`;
+    structure.imports.forEach(imp => {
+      testCode += `\t"${imp}"\n`;
+    });
+    testCode += `)\n\n`;
+    
+    if (structure.classes.length > 0) {
+      structure.classes.forEach(c => {
+        c.methods.forEach(m => {
+          testCode += `func Test${c.name}_${m.name}(t *testing.T) {\n`;
+          testCode += `\t// TODO: Test receiver method ${m.name} on ${c.name}\n`;
+          testCode += `\t// service := &${c.name}{}\n`;
+          testCode += `\t// service.${m.name}()\n`;
+          testCode += `\tif false {\n\t\tt.Errorf("Failed assertion")\n\t}\n`;
+          testCode += `}\n\n`;
+        });
+      });
+    }
+    
+    structure.functions.forEach(f => {
+      testCode += `func Test${f.name}(t *testing.T) {\n`;
+      testCode += `\t// TODO: Test global function ${f.name}\n`;
+      testCode += `\tif false {\n\t\tt.Errorf("Failed assertion")\n\t}\n`;
+      testCode += `}\n\n`;
+    });
+    
+    return testCode;
+  }
+  
+  if (language === 'Java') {
+    let testCode = `// Automated unit tests generated by PolyTest AI for ${baseName}\n`;
+    testCode += `import org.junit.jupiter.api.*;\n`;
+    testCode += `import static org.junit.jupiter.api.Assertions.*;\n\n`;
+    testCode += `class ${baseName}Test {\n`;
+    
+    if (structure.classes.length > 0) {
+      testCode += `    private ${structure.classes[0].name} service;\n\n`;
+      testCode += `    @BeforeEach\n`;
+      testCode += `    void setUp() {\n`;
+      testCode += `        service = new ${structure.classes[0].name}();\n`;
+      testCode += `    }\n\n`;
+      
+      structure.classes[0].methods.forEach(m => {
+        testCode += `    @Test\n`;
+        testCode += `    void test_${m.name}() {\n`;
+        testCode += `        // TODO: Verify method ${m.name}${m.args}\n`;
+        testCode += `        assertTrue(true);\n`;
+        testCode += `    }\n\n`;
+      });
+    }
+    
+    structure.functions.forEach(f => {
+      testCode += `    @Test\n`;
+      testCode += `    void test_${f.name}() {\n`;
+      testCode += `        // TODO: Verify function ${f.name}\n`;
+      testCode += `        assertTrue(true);\n`;
+      testCode += `    }\n\n`;
+    });
+    
+    testCode += `}\n`;
+    return testCode;
+  }
+
+  let testCode = `// Automated unit tests generated by PolyTest AI for ${baseName}\n`;
+  testCode += `#include <gtest/gtest.h>\n`;
+  testCode += `#include "${baseName}.h"\n\n`;
+  
+  if (structure.classes.length > 0) {
+    testCode += `class ${structure.classes[0].name}Test : public ::testing::Test {\n`;
+    testCode += `protected:\n`;
+    testCode += `    ${structure.classes[0].name} service;\n`;
+    testCode += `};\n\n`;
+    
+    structure.classes[0].methods.forEach(m => {
+      testCode += `TEST_F(${structure.classes[0].name}Test, Test_${m.name}) {\n`;
+      testCode += `    // TODO: Verify method ${m.name}\n`;
+      testCode += `    EXPECT_TRUE(true);\n`;
+      testCode += `}\n\n`;
+    });
+  }
+  
+  structure.functions.forEach(f => {
+    testCode += `TEST(${baseName}Test, Test_${f.name}) {\n`;
+    testCode += `    // TODO: Verify global function ${f.name}\n`;
+    testCode += `    EXPECT_TRUE(true);\n`;
+    testCode += `}\n\n`;
+  });
+  
+  return testCode;
+}
+
 function App() {
   // Navigation State: 'landing' or 'console' or 'guide'
   const [viewMode, setViewMode] = useState<'landing' | 'console' | 'guide'>('landing');
@@ -546,10 +892,7 @@ function App() {
   const [isScanning, setIsScanning] = useState<boolean>(false);
   
   // Add Sandbox File States
-  const [showAddFileForm, setShowAddFileForm] = useState<boolean>(false);
-  const [newFileName, setNewFileName] = useState<string>('');
-  const [newFileLanguage, setNewFileLanguage] = useState<string>('TypeScript');
-  const [newFileFramework, setNewFileFramework] = useState<string>('Jest');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Code Inspection States
   const [parsedStructure, setParsedStructure] = useState<ParsedStructure | null>(SANDBOX_STRUCTURES['src/services/PaymentService.ts']);
@@ -808,60 +1151,88 @@ function App() {
     setIsLoadingAnalysis(false);
   };
 
-  // Add Custom Sandbox File
-  const handleAddFileSubmit = () => {
-    if (!newFileName.trim()) return;
-    
-    const inputPath = newFileName.trim();
-    const formattedPath = inputPath.startsWith('src/') ? inputPath : `src/${inputPath}`;
-    
-    const newFile: FileItem = {
-      file_path: formattedPath,
-      language: newFileLanguage,
-      framework: newFileFramework
-    };
+  // Add Custom Sandbox File via native file selector
+  const handleNativeFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-    // Add to state files list
-    setFiles(prev => [...prev, newFile]);
+    const fileName = file.name;
+    const extension = fileName.split('.').pop()?.toLowerCase() || '';
 
-    // Populate mock AST parser structure so AST inspector works immediately for this file!
-    const baseName = formattedPath.split('/').pop()?.split('.')[0] || 'CustomService';
-    SANDBOX_STRUCTURES[formattedPath] = {
-      classes: [
-        { 
-          name: baseName, 
-          methods: [
-            { name: 'execute', args: '() -> void' },
-            { name: 'validate', args: '(data: any) -> boolean' }
-          ] 
+    // Infer language and framework
+    let language = 'TypeScript';
+    let framework = 'Jest';
+
+    if (extension === 'ts' || extension === 'tsx') {
+      language = 'TypeScript';
+      framework = 'Jest';
+    } else if (extension === 'js' || extension === 'jsx') {
+      language = 'JavaScript';
+      framework = 'Jest';
+    } else if (extension === 'py') {
+      language = 'Python';
+      framework = 'pytest';
+    } else if (extension === 'go') {
+      language = 'Go';
+      framework = 'testing';
+    } else if (extension === 'java') {
+      language = 'Java';
+      framework = 'JUnit 5';
+    } else if (['cpp', 'h', 'cc', 'hpp', 'c'].includes(extension)) {
+      language = 'C++';
+      framework = 'Google Test';
+    }
+
+    const formattedPath = `src/${fileName}`;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string || '';
+
+      // Register the raw code in our virtual files system
+      MOCK_SOURCE_CODE[formattedPath] = content;
+
+      // Extract high-fidelity AST structural info statically
+      const structure = parseFileAST(fileName, content);
+      SANDBOX_STRUCTURES[formattedPath] = structure;
+
+      // Dynamically generate the matching mock unit test suite
+      MOCK_GENERATED_CODE[formattedPath] = generateMockTestSuite(fileName, language, framework, structure);
+
+      const newFileItem: FileItem = {
+        file_path: formattedPath,
+        language,
+        framework
+      };
+
+      // Register inside files list state
+      setFiles(prev => {
+        // Prevent duplicate file listings if user re-uploads same file name
+        if (prev.some(f => f.file_path === formattedPath)) {
+          return prev;
         }
-      ],
-      functions: [
-        { name: 'helperUtility', args: '() -> void' }
-      ],
-      imports: ['core', 'utils'],
-      complexity: 'Low'
+        return [...prev, newFileItem];
+      });
+
+      // Select file immediately
+      handleFileSelect(newFileItem);
+
+      setTerminalLogs(prev => [
+        ...prev, 
+        `🟢 Native upload successful: Loaded ${fileName} (${content.split('\n').length} lines)`,
+        `🔍 Static parser discovered: ${structure.classes.length} class(es), ${structure.functions.length} global function(s), ${structure.imports.length} import(s)`,
+        `⚙️ Target language: ${language} | Auto-selected framework: ${framework}`
+      ]);
     };
 
-    // Also populate mock generated code so Code Preview works!
-    MOCK_GENERATED_CODE[formattedPath] = `// Generated automatically by PolyTest AI mock engine for ${formattedPath.split('/').pop()}
-import { ${baseName} } from './${baseName}';
+    reader.onerror = () => {
+      setTerminalLogs(prev => [...prev, `❌ Failed to read selected local file: ${fileName}`]);
+    };
 
-describe('${baseName} Suite', () => {
-  it('should run execution assertions successfully', () => {
-    expect(true).toBe(true);
-  });
-});
-`;
-
-    // Select the newly added file immediately!
-    handleFileSelect(newFile);
-
-    // Close form and clear
-    setShowAddFileForm(false);
-    setNewFileName('');
+    reader.readAsText(file);
     
-    setTerminalLogs(prev => [...prev, `🟢 Successfully registered custom sandbox module: ${formattedPath}`]);
+    // Clear input value so selecting the same file again triggers change event
+    event.target.value = '';
   };
 
   // Toggle single method selection
@@ -1531,12 +1902,18 @@ describe('${baseName} Suite', () => {
                 
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                   <button 
-                    onClick={() => setShowAddFileForm(!showAddFileForm)}
+                    onClick={() => fileInputRef.current?.click()}
                     style={{ fontSize: '10px', color: 'var(--accent-green)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', outline: 'none' }}
                   >
                     <Plus className="w-3 h-3" />
                     Add File
                   </button>
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleNativeFileSelect} 
+                    style={{ display: 'none' }} 
+                  />
                   <button 
                     onClick={triggerAutoDetect}
                     disabled={isScanning}
@@ -1547,67 +1924,6 @@ describe('${baseName} Suite', () => {
                   </button>
                 </div>
               </div>
-
-              {/* Inline Add Sandbox File Form */}
-              {showAddFileForm && (
-                <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', boxSizing: 'border-box', textAlign: 'left', marginTop: '6px' }}>
-                  <span className="mono-label" style={{ fontSize: '8px', color: 'var(--text-muted)' }}>ADD NEW SANDBOX FILE</span>
-                  
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. src/services/AuthService.ts" 
-                      value={newFileName}
-                      onChange={(e) => setNewFileName(e.target.value)}
-                      style={{ background: '#02040a', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '4px 8px', color: '#fff', fontSize: '10px', fontFamily: 'var(--font-mono)', width: '100%', boxSizing: 'border-box' }}
-                    />
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    <select
-                      value={newFileLanguage}
-                      onChange={(e) => setNewFileLanguage(e.target.value)}
-                      style={{ flex: 1, background: '#02040a', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '4px 6px', color: '#fff', fontSize: '9px', fontFamily: 'var(--font-mono)' }}
-                    >
-                      <option value="TypeScript">TypeScript</option>
-                      <option value="Python">Python</option>
-                      <option value="Go">Go</option>
-                      <option value="Java">Java</option>
-                      <option value="C++">C++</option>
-                    </select>
-                    
-                    <select
-                      value={newFileFramework}
-                      onChange={(e) => setNewFileFramework(e.target.value)}
-                      style={{ flex: 1, background: '#02040a', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '4px 6px', color: '#fff', fontSize: '9px', fontFamily: 'var(--font-mono)' }}
-                    >
-                      <option value="Jest">Jest</option>
-                      <option value="pytest">pytest</option>
-                      <option value="testing">testing</option>
-                      <option value="JUnit 5">JUnit 5</option>
-                      <option value="Google Test">Google Test</option>
-                    </select>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', marginTop: '2px' }}>
-                    <button
-                      onClick={() => {
-                        setShowAddFileForm(false);
-                        setNewFileName('');
-                      }}
-                      style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer' }}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleAddFileSubmit}
-                      style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', color: '#fff', background: 'linear-gradient(135deg, var(--accent-cyan), var(--accent-purple))', border: 'none', padding: '2px 8px', borderRadius: '4px', cursor: 'pointer' }}
-                    >
-                      Add
-                    </button>
-                  </div>
-                </div>
-              )}
 
               {/* Directory Tree */}
               <div className="file-tree-container" style={{ width: '100%' }}>
