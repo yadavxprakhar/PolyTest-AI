@@ -26,8 +26,6 @@ import {
   Settings,
   Terminal,
   Briefcase,
-  Layout,
-  Columns,
   PanelRightClose,
   PanelRightOpen
 } from 'lucide-react';
@@ -933,45 +931,70 @@ function App() {
 
   // Terminal Tab State: 'execution' | 'metrics' | 'warnings'
   const [terminalTab, setTerminalTab] = useState<'execution' | 'metrics' | 'warnings'>('execution');
-  const [workbenchWidth, setWorkbenchWidth] = useState<'wide' | 'narrow' | 'hidden'>('wide');
-  const [windowWidth, setWindowWidth] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1200);
+  // Draggable Split-Pane State (Visual Studio Code layout resizer)
+  const [splitRatio, setSplitRatio] = useState<number>(55); // Left panel percentage (25 to 100)
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Dynamic layout calculations based on preset selection and screen/window width
-  const getFlexShares = () => {
-    if (workbenchWidth === 'hidden') {
-      return { left: 1, right: 0 };
-    }
-    
-    // Base ratios:
-    // 'narrow' -> 75:25 (Left: 1.5, Right: 0.5)
-    // 'wide' -> 55:45 (Left: 1.1, Right: 0.9)
-    let leftShare = workbenchWidth === 'narrow' ? 1.5 : 1.1;
-    let rightShare = workbenchWidth === 'narrow' ? 0.5 : 0.9;
-    
-    // Auto-minimize/hide on small screen dimensions to optimize code editor visibility
-    if (windowWidth < 768) {
-      // Extremely narrow screen (mobile): automatically hide right workbench completely
-      return { left: 1, right: 0 };
-    } else if (windowWidth < 1024) {
-      // Tablet/small laptop: force a narrower workbench so Left pane gets more space
-      leftShare = 1.7;
-      rightShare = 0.3;
-    } else if (windowWidth < 1280) {
-      // Medium screen: scale down right workbench moderately
-      if (workbenchWidth === 'wide') {
-        leftShare = 1.35;
-        rightShare = 0.65;
-      } else {
-        leftShare = 1.6;
-        rightShare = 0.4;
+  const isHidden = splitRatio >= 98;
+
+  // Track window resizing for responsive auto-collapse
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setSplitRatio(100); // Auto-hide tools panel on small devices
       }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Handle panel divider dragging mouse events
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging || !containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const offsetX = e.clientX - rect.left;
+      let ratio = (offsetX / rect.width) * 100;
+      
+      // Limit range to prevent UI breaking and snap-to-hide
+      if (ratio > 85) {
+        ratio = 100; // Snap to hide
+      } else if (ratio < 25) {
+        ratio = 25; // Keep code editor readable
+      }
+      
+      setSplitRatio(ratio);
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    } else {
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
     }
-    
-    return { left: leftShare, right: rightShare };
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
   };
 
-  const flexShares = getFlexShares();
-  const isHidden = flexShares.right === 0;
+  const handleDoubleClick = () => {
+    setSplitRatio(55); // Reset back to balanced split view
+  };
 
   // Terminal & Run Outcomes
   const [terminalLogs, setTerminalLogs] = useState<string[]>([
@@ -1026,11 +1049,7 @@ function App() {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-    };
     window.addEventListener('scroll', handleScroll);
-    window.addEventListener('resize', handleResize);
     
     // Live chart updates
     const chartInterval = setInterval(() => {
@@ -1046,7 +1065,6 @@ function App() {
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleResize);
       clearInterval(chartInterval);
     };
   }, []);
@@ -2127,72 +2145,37 @@ function App() {
                     </div>
                   )}
 
-                  {/* Layout Size controls */}
-                  <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '2px', borderRadius: '4px', border: '1px solid rgba(255, 255, 255, 0.05)', gap: '2px' }}>
+                  {/* VS Code Toggle Panel button */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <button
-                      onClick={() => setWorkbenchWidth('wide')}
-                      className={`preset-tab-btn ${workbenchWidth === 'wide' && !isHidden ? 'active' : ''}`}
+                      onClick={() => setSplitRatio(prev => prev >= 98 ? 55 : 100)}
                       style={{
-                        padding: '3px 6px',
-                        fontSize: '8px',
-                        fontFamily: 'var(--font-mono)',
+                        padding: '4px 8px',
                         borderRadius: '3px',
-                        background: workbenchWidth === 'wide' && !isHidden ? 'rgba(0, 245, 255, 0.1)' : 'transparent',
-                        border: 'none',
-                        color: workbenchWidth === 'wide' && !isHidden ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+                        background: 'transparent',
+                        border: '1px solid var(--border-color)',
+                        color: isHidden ? 'var(--text-secondary)' : 'var(--accent-cyan)',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '3px'
+                        gap: '4px',
+                        fontSize: '10px',
+                        fontFamily: 'var(--font-sans)',
+                        transition: 'all 0.15s ease'
                       }}
-                      title="Split View (Wide Workbench)"
+                      title={isHidden ? "Show Workbench Side Panel" : "Hide Workbench Side Panel"}
                     >
-                      <Layout className="w-3 h-3" />
-                      <span>55:45</span>
-                    </button>
-                    
-                    <button
-                      onClick={() => setWorkbenchWidth('narrow')}
-                      className={`preset-tab-btn ${workbenchWidth === 'narrow' && !isHidden ? 'active' : ''}`}
-                      style={{
-                        padding: '3px 6px',
-                        fontSize: '8px',
-                        fontFamily: 'var(--font-mono)',
-                        borderRadius: '3px',
-                        background: workbenchWidth === 'narrow' && !isHidden ? 'rgba(0, 245, 255, 0.1)' : 'transparent',
-                        border: 'none',
-                        color: workbenchWidth === 'narrow' && !isHidden ? 'var(--accent-cyan)' : 'var(--text-secondary)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '3px'
-                      }}
-                      title="Narrow Workbench View"
-                    >
-                      <Columns className="w-3 h-3" />
-                      <span>75:25</span>
-                    </button>
-
-                    <button
-                      onClick={() => setWorkbenchWidth(isHidden ? 'wide' : 'hidden')}
-                      className={`preset-tab-btn ${isHidden ? 'active' : ''}`}
-                      style={{
-                        padding: '3px 6px',
-                        fontSize: '8px',
-                        fontFamily: 'var(--font-mono)',
-                        borderRadius: '3px',
-                        background: isHidden ? 'rgba(239, 68, 68, 0.15)' : 'transparent',
-                        border: 'none',
-                        color: isHidden ? '#ef4444' : 'var(--text-secondary)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '3px'
-                      }}
-                      title={isHidden ? "Show Workbench" : "Hide Workbench"}
-                    >
-                      {isHidden ? <PanelRightOpen className="w-3 h-3 text-cyan-400" /> : <PanelRightClose className="w-3 h-3 text-red-400" />}
-                      <span>{isHidden ? "SHOW" : "HIDE"}</span>
+                      {isHidden ? (
+                        <>
+                          <PanelRightOpen className="w-3.5 h-3.5" style={{ color: 'var(--accent-cyan)' }} />
+                          <span>Show Tools</span>
+                        </>
+                      ) : (
+                        <>
+                          <PanelRightClose className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
+                          <span>Hide Tools</span>
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -2200,18 +2183,19 @@ function App() {
               </div>
 
               {/* DUAL PANE WORKSPACE SPLIT */}
-              <div style={{ display: 'flex', flex: 1, overflow: 'hidden', width: '100%' }}>
+              <div ref={containerRef} style={{ display: 'flex', flex: 1, overflow: 'hidden', width: '100%', position: 'relative' }}>
                 
                 {/* LEFT PANE: Syntax Highlighted Original Source Code Editor */}
                 <div style={{ 
-                  flex: flexShares.left, 
+                  width: isHidden ? '100%' : `${splitRatio}%`,
+                  flex: 'none',
                   minWidth: 0,
                   borderRight: !isHidden ? '1px solid rgba(255, 255, 255, 0.05)' : 'none', 
                   display: 'flex', 
                   flexDirection: 'column', 
                   background: '#08090c', 
                   overflow: 'hidden',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                  transition: isDragging ? 'none' : 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
                 }}>
                   {/* Breadcrumbs Row */}
                   <div className="editor-breadcrumbs" style={{ 
@@ -2282,15 +2266,62 @@ function App() {
                   </div>
                 </div>
 
+                {/* DRAGGABLE VS CODE SPLITTER */}
+                {!isHidden && (
+                  <div 
+                    onMouseDown={handleMouseDown}
+                    onDoubleClick={handleDoubleClick}
+                    style={{
+                      width: '4px',
+                      cursor: 'col-resize',
+                      background: isDragging ? 'var(--accent-cyan)' : 'rgba(255, 255, 255, 0.05)',
+                      position: 'relative',
+                      zIndex: 50,
+                      userSelect: 'none',
+                      transition: 'background 0.15s ease',
+                      flexShrink: 0
+                    }}
+                    className="vscode-workspace-divider"
+                    title="Drag to resize, double-click to reset"
+                  >
+                    {/* Centered Pill handle matching the user's screenshot */}
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: '16px',
+                      height: '24px',
+                      background: '#0e0e0e',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      borderRadius: '3px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'col-resize',
+                      color: isDragging ? 'var(--accent-cyan)' : '#888888',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.5)',
+                      pointerEvents: 'none'
+                    }}>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="m8 18-6-6 6-6"/>
+                        <path d="m16 6 6 6-6 6"/>
+                        <path d="M12 2v20"/>
+                      </svg>
+                    </div>
+                  </div>
+                )}
+
                 {/* RIGHT PANE: Interactive AI Workbench Tools */}
                 <div style={{ 
-                  flex: flexShares.right, 
+                  width: isHidden ? '0%' : `${100 - splitRatio}%`,
+                  flex: 'none',
                   minWidth: isHidden ? 0 : '240px',
                   display: isHidden ? 'none' : 'flex', 
                   flexDirection: 'column', 
                   background: '#090a0f', 
                   overflow: 'hidden',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                  transition: isDragging ? 'none' : 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
                 }}>
                   
                   {/* Tab views nested stacking */}
