@@ -19,11 +19,15 @@ import {
   Layers,
   ArrowLeft,
   Sliders,
-  AlertTriangle,
   Copy,
   Download,
-  Plus
+  Plus,
+  Search,
+  Settings,
+  Terminal,
+  Briefcase
 } from 'lucide-react';
+
 
 // --- Types ---
 interface FileItem {
@@ -350,6 +354,11 @@ function App() {
   const [validatedCount, setValidatedCount] = useState<number>(114);
   const [issueCount, setIssueCount] = useState<number>(2);
 
+  // Search & Live Telemetry history buffers
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [cpuHistory, setCpuHistory] = useState<number[]>([12, 16, 14, 18, 15, 20, 22, 19, 17, 24, 25, 21, 23, 26, 24]);
+  const [ramHistory, setRamHistory] = useState<number[]>([38, 39, 41, 40, 42, 43, 42, 44, 45, 43, 44, 46, 47, 45, 46]);
+
   // Terminal Tab State: 'execution' | 'metrics' | 'warnings'
   const [terminalTab, setTerminalTab] = useState<'execution' | 'metrics' | 'warnings'>('execution');
 
@@ -407,8 +416,25 @@ function App() {
       setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    
+    // Live chart updates
+    const chartInterval = setInterval(() => {
+      setCpuHistory(prev => {
+        const nextVal = Math.max(6, Math.min(65, Math.round(prev[prev.length - 1] + (Math.random() - 0.5) * 10)));
+        return [...prev.slice(1), nextVal];
+      });
+      setRamHistory(prev => {
+        const nextVal = Math.max(28, Math.min(94, Math.round(prev[prev.length - 1] + (Math.random() - 0.5) * 6)));
+        return [...prev.slice(1), nextVal];
+      });
+    }, 1000);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearInterval(chartInterval);
+    };
   }, []);
+
 
   // 2. Scan Workspace Files
   const triggerAutoDetect = async () => {
@@ -1208,7 +1234,23 @@ describe('${baseName} Suite', () => {
             
             {/* Left Side: Directory folders & Mini-charts */}
             <section className="ide-explorer-panel crisp-panel">
-              <div className="flex-row-align" style={{ justifyContent: 'space-between', width: '100%' }}>
+              <div className="sidebar-brand-header">
+                <Cpu className="w-4.5 h-4.5 text-cyan-400" />
+                <span className="sidebar-brand-title">PolyTest-AI</span>
+              </div>
+
+              <div className="sidebar-search-wrapper">
+                <Search className="w-3.5 h-3.5 sidebar-search-icon" />
+                <input 
+                  type="text" 
+                  placeholder="Search files..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="sidebar-search-input"
+                />
+              </div>
+
+              <div className="flex-row-align" style={{ justifyContent: 'space-between', width: '100%', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px' }}>
                 <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <FolderOpen className="w-3.5 h-3.5 text-cyan-400" />
                   Files Explorer
@@ -1308,17 +1350,25 @@ describe('${baseName} Suite', () => {
                   </div>
 
                   <div className="tree-node-nested-line-container">
-                    {files.map((file, idx) => {
+                    {files.filter(file => file.file_path.toLowerCase().includes(searchQuery.toLowerCase())).map((file, idx) => {
                       const isSelected = selectedFile?.file_path === file.file_path;
                       const baseName = file.file_path.split('/').pop() || '';
+                      const coverage = baseName === 'PaymentService.ts' ? '98%' : baseName === 'UserAuth.ts' ? '92%' : '84%';
                       return (
                         <div
                           key={idx}
                           onClick={() => handleFileSelect(file)}
                           className={`file-item-node ${isSelected ? 'selected' : ''}`}
+                          style={{ justifyContent: 'space-between', display: 'flex', width: '100%' }}
                         >
-                          <FileCode className="w-3.5 h-3.5" style={{ color: getLanguageColor(file.language) }} />
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{baseName}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                            <FileCode className="w-3.5 h-3.5" style={{ color: getLanguageColor(file.language), flexShrink: 0 }} />
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{baseName}</span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                            <span style={{ fontSize: '8px', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', background: 'rgba(0, 245, 255, 0.05)', padding: '1px 4px', borderRadius: '3px' }}>{coverage}</span>
+                            <span style={{ fontSize: '8px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>cached</span>
+                          </div>
                         </div>
                       );
                     })}
@@ -1371,6 +1421,22 @@ describe('${baseName} Suite', () => {
                 </div>
               </div>
 
+              {/* Bottom builds & settings navigation links */}
+              <div className="sidebar-bottom-nav">
+                <div className="sidebar-nav-item active">
+                  <Briefcase className="w-3.5 h-3.5" />
+                  <span>PROJECTS</span>
+                </div>
+                <div className="sidebar-nav-item" onClick={() => setTerminalTab('metrics')}>
+                  <Terminal className="w-3.5 h-3.5" />
+                  <span>BUILDS</span>
+                </div>
+                <div className="sidebar-nav-item" onClick={() => setCanvasTab('inspector')}>
+                  <Settings className="w-3.5 h-3.5" />
+                  <span>SETTINGS</span>
+                </div>
+              </div>
+
               {/* Workspace footer */}
               <div className="source-root-banner" style={{ width: '100%' }}>
                 <span className="mono-label" style={{ display: 'block', marginBottom: '4px' }}>Workspace Root</span>
@@ -1381,16 +1447,31 @@ describe('${baseName} Suite', () => {
             {/* Center Panel: Dual Canvas Tabs Editor */}
             <section className="workspace-center-panel">
               
-              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', width: '100%', paddingBottom: '0' }}>
                 
                 {/* Document tabs */}
-                <div style={{ display: 'flex', gap: '4px' }}>
-                  {selectedFile && (
-                    <div className="active-file-tab-crisp">
-                      <FileCode className="w-3.5 h-3.5" style={{ color: getLanguageColor(selectedFile.language) }} />
-                      <span>{selectedFile.file_path.split('/').pop()}</span>
-                    </div>
-                  )}
+                <div className="editor-tabs-bar">
+                  <div 
+                    className={`editor-tab-item ${canvasTab !== 'code' ? 'active' : ''}`} 
+                    onClick={() => {
+                      if (canvasTab === 'code') setCanvasTab('inspector');
+                    }}
+                  >
+                    <FileCode className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>{selectedFile ? selectedFile.file_path.split('/').pop() : 'PaymentService.ts'}</span>
+                  </div>
+                  <div 
+                    className={`editor-tab-item ${canvasTab === 'code' ? 'active' : ''}`} 
+                    onClick={() => setCanvasTab('code')}
+                  >
+                    <FileCode className="w-3.5 h-3.5 text-purple-400" />
+                    <span>{selectedFile ? `test_${selectedFile.file_path.split('/').pop()}` : 'PaymentService.test.ts'}</span>
+                    <span className="tab-close-btn" style={{ marginLeft: '6px' }}>×</span>
+                  </div>
+                  <div className="editor-tab-item" style={{ opacity: 0.4, cursor: 'not-allowed' }}>
+                    <FileCode className="w-3.5 h-3.5 text-zinc-600" />
+                    <span>db.ts</span>
+                  </div>
                 </div>
 
                 {/* Workspace display toggle canvas tabs */}
@@ -1791,7 +1872,17 @@ describe('${baseName} Suite', () => {
                       </div>
                     </div>
 
-                    <div className="code-editor-pane" style={{ background: '#02040a', border: '1px solid rgba(255,255,255,0.03)', borderRadius: '8px', padding: '16px', marginTop: '16px', overflowY: 'auto', maxHeight: '52vh', flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    {useCache && (
+                      <div className="prompt-cache-active-banner" style={{ marginTop: '12px', marginBottom: '0px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span className="cache-pulse-dot" />
+                          <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--accent-green)' }}>ACTIVE (HIT) Prompt Cache Indicator</span>
+                        </div>
+                        <span className="cache-hash-badge">md5:8b1a5e52a9a4d2e8b0a5f4c3d2e1a0b5</span>
+                      </div>
+                    )}
+
+                    <div className="code-editor-pane" style={{ background: '#02040a', border: '1px solid rgba(255,255,255,0.03)', borderRadius: '8px', padding: '16px', marginTop: '12px', overflowY: 'auto', maxHeight: '52vh', flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
                       {renderHighlightedCode(currentGeneratedCode)}
                     </div>
                   </div>
@@ -1801,17 +1892,93 @@ describe('${baseName} Suite', () => {
             </section>
 
             {/* Right Side: Segmented Presets & Sliders */}
-            <section className="controls-right-sidebar">
+            <section className="controls-right-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               
-              <div className="crisp-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {/* Unified Telemetry HUD Grid */}
+              <div className="telemetry-grid">
+                <div className="telemetry-card">
+                  <span className="telemetry-card-title">CPU LOAD</span>
+                  <span className="telemetry-card-value">{cpuHistory[cpuHistory.length - 1]}%</span>
+                  <span className="telemetry-card-desc">Subrunner thread</span>
+                </div>
+                <div className="telemetry-card">
+                  <span className="telemetry-card-title">MEMORY LOAD</span>
+                  <span className="telemetry-card-value">{ramHistory[ramHistory.length - 1]}MB</span>
+                  <span className="telemetry-card-desc">Sandbox buffer</span>
+                </div>
+                <div className="telemetry-card">
+                  <span className="telemetry-card-title">SPECS GENERATED</span>
+                  <span className="telemetry-card-value">{validatedCount}</span>
+                  <span className="telemetry-card-desc">Unit tests run</span>
+                </div>
+                <div className="telemetry-card">
+                  <span className="telemetry-card-title">DIAGNOSTICS</span>
+                  <span className="telemetry-card-value" style={{ color: syntaxCorrectness === 100 ? 'var(--accent-green)' : 'var(--accent-cyan)' }}>{syntaxCorrectness}% OK</span>
+                  <span className="telemetry-card-desc">{issueCount} compiled warnings</span>
+                </div>
+              </div>
+
+              {/* Dynamic SVG Live Telemetry Chart */}
+              {(() => {
+                const cpuLinePath = `M ${cpuHistory.map((val, idx) => `${idx * (300 / 14)} ${80 - (val / 100) * 70}`).join(' L ')}`;
+                const ramLinePath = `M ${ramHistory.map((val, idx) => `${idx * (300 / 14)} ${80 - (val / 100) * 70}`).join(' L ')}`;
+                const cpuAreaPath = `${cpuLinePath} L 300 80 L 0 80 Z`;
+                const ramAreaPath = `${ramLinePath} L 300 80 L 0 80 Z`;
+
+                return (
+                  <div className="svg-chart-container">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span className="mono-label" style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Real-time System Resource Telemetry</span>
+                      <div className="telemetry-chart-legend">
+                        <div className="legend-item">
+                          <span className="legend-dot cyan" />
+                          <span>CPU ({cpuHistory[cpuHistory.length - 1]}%)</span>
+                        </div>
+                        <div className="legend-item">
+                          <span className="legend-dot purple" />
+                          <span>RAM ({ramHistory[ramHistory.length - 1]}MB)</span>
+                        </div>
+                      </div>
+                    </div>
+                    <svg viewBox="0 0 300 80" className="telemetry-chart-svg">
+                      <defs>
+                        <linearGradient id="cpuGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" stopColor="var(--accent-cyan)" stopOpacity="0.25" />
+                          <stop offset="100%" stopColor="var(--accent-cyan)" stopOpacity="0" />
+                        </linearGradient>
+                        <linearGradient id="ramGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" stopColor="var(--accent-purple)" stopOpacity="0.25" />
+                          <stop offset="100%" stopColor="var(--accent-purple)" stopOpacity="0" />
+                        </linearGradient>
+                      </defs>
+                      
+                      {/* Grid Lines */}
+                      <line x1="0" y1="20" x2="300" y2="20" className="chart-grid-line" />
+                      <line x1="0" y1="40" x2="300" y2="40" className="chart-grid-line" />
+                      <line x1="0" y1="60" x2="300" y2="60" className="chart-grid-line" />
+                      
+                      {/* RAM Area & Line */}
+                      <path d={ramAreaPath} fill="url(#ramGradient)" />
+                      <path d={ramLinePath} fill="none" stroke="var(--accent-purple)" strokeWidth="1.5" className="chart-neon-glow-purple" />
+                      
+                      {/* CPU Area & Line */}
+                      <path d={cpuAreaPath} fill="url(#cpuGradient)" />
+                      <path d={cpuLinePath} fill="none" stroke="var(--accent-cyan)" strokeWidth="1.5" className="chart-neon-glow-cyan" />
+                    </svg>
+                  </div>
+                );
+              })()}
+
+              {/* Parameters & Configuration Dock */}
+              <div className="crisp-panel" style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Sliders className="w-3.5 h-3.5 text-purple-400" />
+                  <Sliders className="w-3.5 h-3.5 text-cyan-400" />
                   Parameters Dock
                 </span>
 
                 {/* Segmented Preset Selector */}
                 <div className="preset-configuration-box" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label className="mono-label" style={{ display: 'block', textAlign: 'left' }}>AI Prompts Preset</label>
+                  <label className="mono-label" style={{ display: 'block', textAlign: 'left', fontSize: '8px' }}>AI Prompts Preset</label>
                   
                   <div className="preset-tab-group" style={{ display: 'flex', background: 'rgba(255,255,255,0.02)', padding: '3px', borderRadius: '8px', border: '1px solid var(--border-color)', gap: '4px', position: 'relative' }}>
                     <button
@@ -1859,38 +2026,43 @@ describe('${baseName} Suite', () => {
                   </div>
                 </div>
 
-                <div className="settings-group">
-                  <label className="mono-label" style={{ display: 'block', textAlign: 'left', marginBottom: '4px' }}>LLM PROVIDER</label>
-                  <select 
-                    value={selectedProvider} 
-                    onChange={(e) => {
-                      setSelectedProvider(e.target.value);
-                      if (e.target.value === 'mock') setSelectedModel('gemini-1.5-flash');
-                      else if (e.target.value === 'openai') setSelectedModel('gpt-4o');
-                      else if (e.target.value === 'gemini') setSelectedModel('gemini-1.5-flash');
-                    }}
-                    className="crisp-input crisp-select"
-                  >
-                    <option value="mock">Offline Mock Engine</option>
-                    <option value="gemini">Google Gemini API</option>
-                    <option value="openai">OpenAI GPT API</option>
-                  </select>
-                </div>
+                {/* LLM Provider & Target Model Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div className="settings-group">
+                    <label className="mono-label" style={{ display: 'block', textAlign: 'left', marginBottom: '4px', fontSize: '8px' }}>LLM PROVIDER</label>
+                    <select 
+                      value={selectedProvider} 
+                      onChange={(e) => {
+                        setSelectedProvider(e.target.value);
+                        if (e.target.value === 'mock') setSelectedModel('gemini-1.5-flash');
+                        else if (e.target.value === 'openai') setSelectedModel('gpt-4o');
+                        else if (e.target.value === 'gemini') setSelectedModel('gemini-1.5-flash');
+                      }}
+                      className="crisp-input crisp-select"
+                      style={{ padding: '6px 20px 6px 8px', fontSize: '10px' }}
+                    >
+                      <option value="mock">Offline Mock</option>
+                      <option value="gemini">Google Gemini</option>
+                      <option value="openai">OpenAI GPT</option>
+                    </select>
+                  </div>
 
-                <div className="settings-group">
-                  <label className="mono-label" style={{ display: 'block', textAlign: 'left', marginBottom: '4px' }}>Target Model</label>
-                  <input 
-                    type="text" 
-                    value={selectedModel} 
-                    onChange={(e) => setSelectedModel(e.target.value)}
-                    className="crisp-input"
-                  />
+                  <div className="settings-group">
+                    <label className="mono-label" style={{ display: 'block', textAlign: 'left', marginBottom: '4px', fontSize: '8px' }}>TARGET MODEL</label>
+                    <input 
+                      type="text" 
+                      value={selectedModel} 
+                      onChange={(e) => setSelectedModel(e.target.value)}
+                      className="crisp-input"
+                      style={{ padding: '6px 8px', fontSize: '10px' }}
+                    />
+                  </div>
                 </div>
 
                 {/* Real-time Temperature Slider */}
                 <div className="slider-group-crisp">
                   <div className="slider-label-row">
-                    <label className="mono-label">Temperature</label>
+                    <label className="mono-label" style={{ fontSize: '8px' }}>Temperature</label>
                     <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)' }}>{temperature}</span>
                   </div>
                   <input 
@@ -1907,7 +2079,7 @@ describe('${baseName} Suite', () => {
                 {/* Real-time Max Tokens Slider */}
                 <div className="slider-group-crisp">
                   <div className="slider-label-row">
-                    <label className="mono-label">Max Tokens</label>
+                    <label className="mono-label" style={{ fontSize: '8px' }}>Max Tokens</label>
                     <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)' }}>{maxTokens}</span>
                   </div>
                   <input 
@@ -1924,7 +2096,7 @@ describe('${baseName} Suite', () => {
                 {/* Real-time Target Coverage Slider */}
                 <div className="slider-group-crisp">
                   <div className="slider-label-row">
-                    <label className="mono-label">Coverage Target</label>
+                    <label className="mono-label" style={{ fontSize: '8px' }}>Coverage Target</label>
                     <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)' }}>{coverageTarget}%</span>
                   </div>
                   <input 
@@ -1938,36 +2110,40 @@ describe('${baseName} Suite', () => {
                   />
                 </div>
 
-                <div className="setting-row-flex">
-                  <span className="mono-label" style={{ fontSize: '9px' }}>Prompt Caching</span>
-                  <input 
-                    type="checkbox" 
-                    checked={useCache} 
-                    onChange={(e) => setUseCache(e.target.checked)} 
-                    className="checkbox-custom" 
-                  />
+                {/* Toggles */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+                  <div className="setting-row-flex" style={{ flex: 1, padding: '4px 8px' }}>
+                    <span className="mono-label" style={{ fontSize: '8px' }}>CACHE PROMPTS</span>
+                    <input 
+                      type="checkbox" 
+                      checked={useCache} 
+                      onChange={(e) => setUseCache(e.target.checked)} 
+                      className="checkbox-custom" 
+                    />
+                  </div>
+
+                  <div className="setting-row-flex" style={{ flex: 1, padding: '4px 8px' }}>
+                    <span className="mono-label" style={{ fontSize: '8px' }}>AUTO-RUN</span>
+                    <input 
+                      type="checkbox" 
+                      checked={runImmediately} 
+                      onChange={(e) => setRunImmediately(e.target.checked)} 
+                      className="checkbox-custom" 
+                    />
+                  </div>
                 </div>
 
-                <div className="setting-row-flex">
-                  <span className="mono-label" style={{ fontSize: '9px' }}>Auto-Execute Run</span>
-                  <input 
-                    type="checkbox" 
-                    checked={runImmediately} 
-                    onChange={(e) => setRunImmediately(e.target.checked)} 
-                    className="checkbox-custom" 
-                  />
-                </div>
-
+                {/* Action button */}
                 <button
                   onClick={handleGenerate}
                   disabled={isGenerating || !selectedFile || selectedMethods.length === 0}
                   className="crisp-button"
-                  style={{ width: '100%', marginTop: '6px' }}
+                  style={{ width: '100%', padding: '10px 12px', background: 'linear-gradient(135deg, var(--accent-cyan), var(--accent-purple))', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}
                 >
                   {isGenerating ? (
                     <>
                       <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      Compiling...
+                      Generating Suite...
                     </>
                   ) : (
                     <>
@@ -1978,64 +2154,8 @@ describe('${baseName} Suite', () => {
                 </button>
               </div>
 
-              {/* Health Gauge Panel */}
-              <div className="crisp-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-                <span className="mono-label" style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
-                  Validator Diagnostics
-                </span>
-
-                <div style={{ position: 'relative', width: '120px', height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '4px 0' }}>
-                  <svg style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
-                    <circle cx="60" cy="60" r="44" stroke="rgba(255, 255, 255, 0.02)" strokeWidth="6" fill="transparent" />
-                    <circle 
-                      cx="60" 
-                      cy="60" 
-                      r="44" 
-                      stroke="url(#cyanPurpleGradient)" 
-                      strokeWidth="6" 
-                      fill="transparent" 
-                      strokeDasharray={2 * Math.PI * 44}
-                      strokeDashoffset={(2 * Math.PI * 44) - (syntaxCorrectness / 100) * (2 * Math.PI * 44)}
-                      strokeLinecap="round"
-                      className="syntax-circle-path"
-                      style={{ filter: 'drop-shadow(0 0 4px rgba(0, 245, 255, 0.3))' }}
-                    />
-                  </svg>
-
-                  <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <span style={{ fontSize: '24px', fontWeight: 700, color: '#fff', letterSpacing: '-0.02em' }}>{syntaxCorrectness}%</span>
-                    <span className="mono-label" style={{ fontSize: '8px', color: 'var(--accent-cyan)' }}>LINT OK</span>
-                  </div>
-                </div>
-
-                <div className="stats-grid-double">
-                  <div style={{ textAlign: 'left' }}>
-                    <span className="mono-label" style={{ display: 'block', fontSize: '8px' }}>Specs Run</span>
-                    <span style={{ color: '#fff', fontSize: '13px', fontWeight: 600, fontFamily: 'var(--font-mono)', marginTop: '2px', display: 'block' }}>{validatedCount}</span>
-                  </div>
-                  <div style={{ textAlign: 'left', borderLeft: '1px solid rgba(255,255,255,0.05)', paddingLeft: '12px' }}>
-                    <span className="mono-label" style={{ display: 'block', fontSize: '8px' }}>Errors Log</span>
-                    <span style={{ color: issueCount > 0 ? 'var(--accent-red)' : 'var(--text-muted)', fontSize: '13px', fontWeight: 600, fontFamily: 'var(--font-mono)', marginTop: '2px', display: 'block' }}>{issueCount}</span>
-                  </div>
-                </div>
-
-                {/* Detailed linter diagnostics log list */}
-                {issueCount > 0 && (
-                  <div className="diagnostic-issues-scroller">
-                    <div className="diagnostic-log-item">
-                      <AlertTriangle className="w-3.5 h-3.5 text-rose-400" style={{ flexShrink: 0 }} />
-                      <div>
-                        <span style={{ color: '#fff', display: 'block', fontSize: '9px' }}>Warning (Line 14)</span>
-                        <span style={{ color: 'var(--text-secondary)' }}>Avoid raw types in cryptokey init.</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* MD5 Prompt Caching cryptographic module */}
-              <div className="crisp-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px', textAlign: 'left' }}>
+              {/* MD5 Cryptographic Cache Diagnostics */}
+              <div className="crisp-panel" style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px', textAlign: 'left' }}>
                 <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Zap className={`w-3.5 h-3.5 ${useCache ? 'text-amber-400 animate-pulse' : 'text-zinc-600'}`} />
                   MD5 Cryptographic Cache
@@ -2065,29 +2185,25 @@ describe('${baseName} Suite', () => {
                       <span className="ast-import-tag" style={{ fontSize: '8px', padding: '1px 4px', background: 'rgba(255,255,255,0.01)' }}>Temp matching: OK</span>
                     </div>
                   </div>
-
-                  <p style={{ fontSize: '9px', color: 'var(--text-muted)', margin: 0, lineHeight: '1.4', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: '6px' }}>
-                    Calculates file AST checksum signature to skip LLM generation on identical source states, saving token pricing.
-                  </p>
                 </div>
               </div>
 
-              {/* Subprocess console Panel */}
-              <div className="crisp-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', border: '1px solid var(--border-color)', borderRadius: '10px', background: 'rgba(3, 7, 18, 0.3)' }}>
+              {/* Subrunner Stdin & Execution Logs */}
+              <div className="crisp-panel" style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '12px', border: '1px solid var(--border-color)', borderRadius: '10px', background: 'rgba(3, 7, 18, 0.3)' }}>
                 
                 {/* Visual Title Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '10px' }}>
                   <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Activity className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
-                    Subprocess Subrunner Telemetry
+                    Subrunner Terminal Logs
                   </span>
                   
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-mono)', fontSize: '8px', color: 'var(--text-muted)' }}>
                     <span>PID: <span style={{ color: 'var(--accent-green)' }}>49811</span></span>
                     <span style={{ width: '1px', height: '8px', background: 'rgba(255,255,255,0.1)' }} />
-                    <span>CPU: <span style={{ color: 'var(--accent-cyan)' }}>12%</span></span>
+                    <span>CPU: <span style={{ color: 'var(--accent-cyan)' }}>{cpuHistory[cpuHistory.length - 1]}%</span></span>
                     <span style={{ width: '1px', height: '8px', background: 'rgba(255,255,255,0.1)' }} />
-                    <span>MEM: <span style={{ color: 'var(--accent-purple)' }}>42MB</span></span>
+                    <span>MEM: <span style={{ color: 'var(--accent-purple)' }}>{ramHistory[ramHistory.length - 1]}MB</span></span>
                   </div>
                 </div>
 
@@ -2117,7 +2233,7 @@ describe('${baseName} Suite', () => {
                   </div>
 
                   <span style={{ fontSize: '8px', fontFamily: 'var(--font-mono)', background: 'rgba(0, 245, 255, 0.05)', border: '1px solid rgba(0,245,255,0.12)', color: 'var(--accent-cyan)', padding: '2px 6px', borderRadius: '3px' }}>
-                    ISOLATION: SECURE SANDBOX
+                    SECURE SANDBOX
                   </span>
                 </div>
 

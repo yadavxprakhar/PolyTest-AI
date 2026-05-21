@@ -1,0 +1,10 @@
+# PolyTest AI Configuration File
+# Generated automatically by PolyTest AI Node.js Platform
+
+llm:
+  provider: mock
+  model: gemini-1.5-flash
+
+generator:
+  output_dir: tests
+  use_cache: true
