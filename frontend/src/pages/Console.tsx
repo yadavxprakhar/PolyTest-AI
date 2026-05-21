@@ -2271,6 +2271,7 @@ function Console() {
                       boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
                       minWidth: '120px'
                     }}>
+                      <div className="context-menu-item" style={{ padding: '6px 12px', fontSize: '12px', color: '#ccc', cursor: 'pointer', borderRadius: '2px' }} onClick={() => { setExplorerView('openEditors'); setExplorerMenuOpen(false); }}>Open Editors</div>
                       <div className="context-menu-item" style={{ padding: '6px 12px', fontSize: '12px', color: '#ccc', cursor: 'pointer', borderRadius: '2px' }} onClick={() => { setExplorerView('folder'); setExplorerMenuOpen(false); }}>Explorer</div>
                       <div className="context-menu-item" style={{ padding: '6px 12px', fontSize: '12px', color: '#ccc', cursor: 'pointer', borderRadius: '2px' }} onClick={() => { setExplorerView('project'); setExplorerMenuOpen(false); }}>Project</div>
                       <div className="context-menu-item" style={{ padding: '6px 12px', fontSize: '12px', color: '#ccc', cursor: 'pointer', borderRadius: '2px' }} onClick={() => { setExplorerView('builds'); setExplorerMenuOpen(false); }}>Builds</div>
@@ -2279,54 +2280,74 @@ function Console() {
                 </div>
               </div>
 
-              {explorerView === 'folder' && (
+              {(explorerView === 'folder' || explorerView === 'openEditors') && (
                 <>
-                  {/* OPEN EDITORS SECTION */}
-                  <div className="flex-row-align" style={{ justifyContent: 'space-between', width: '100%', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '4px', paddingTop: '4px', paddingLeft: '4px', paddingRight: '4px' }}>
-                    <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <FileCode className="w-3.5 h-3.5 text-cyan-400" />
-                      Open Editors
-                    </span>
-                  </div>
-                  <div style={{ padding: '2px 4px', display: 'flex', flexDirection: 'column', gap: '0', overflowY: 'auto', maxHeight: '150px' }}>
-                    {openEditors.map(file => (
-                      <div 
-                        key={file.file_path}
-                        onClick={() => setSelectedFile(file)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '4px 6px',
-                          fontSize: '11px',
-                          fontFamily: 'var(--font-sans)',
-                          color: selectedFile?.file_path === file.file_path ? '#ffffff' : 'var(--text-secondary)',
-                          background: selectedFile?.file_path === file.file_path ? 'rgba(55, 148, 255, 0.15)' : 'transparent',
-                          borderLeft: selectedFile?.file_path === file.file_path ? '2px solid var(--accent-cyan)' : '2px solid transparent',
-                          cursor: 'pointer',
-                          borderRadius: '3px',
-                          margin: '1px 0'
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <FileCode className="w-3 h-3 text-cyan-400" />
-                          <span>{file.file_path.split('/').pop()}</span>
-                        </div>
-                        <X 
-                          className="w-3 h-3" 
-                          style={{ cursor: 'pointer', opacity: 0.6 }} 
-                          onClick={(e) => handleCloseEditor(e, file)}
-                          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-                          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.6'}
-                        />
+                  {/* OPEN EDITORS SECTION (Only visible when Open Editors view is active) */}
+                  {explorerView === 'openEditors' && (
+                    <>
+                      <div className="flex-row-align" style={{ justifyContent: 'space-between', width: '100%', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '4px', paddingTop: '4px', paddingLeft: '4px', paddingRight: '4px' }}>
+                        <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <FileCode className="w-3.5 h-3.5 text-cyan-400" />
+                          Open Editors
+                        </span>
                       </div>
-                    ))}
-                    {openEditors.length === 0 && (
-                      <div style={{ padding: '12px', fontSize: '11px', color: 'var(--text-secondary)', textAlign: 'center' }}>
-                        No editors open
+                      <div style={{ padding: '2px 4px', display: 'flex', flexDirection: 'column', gap: '0', overflowY: 'auto', maxHeight: '150px' }}>
+                        {openEditors.map(file => (
+                          <div 
+                            key={file.file_path}
+                            onClick={() => setSelectedFile(file)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              padding: '4px 6px',
+                              fontSize: '11px',
+                              fontFamily: 'var(--font-sans)',
+                              color: selectedFile?.file_path === file.file_path ? '#ffffff' : 'var(--text-secondary)',
+                              background: selectedFile?.file_path === file.file_path ? 'rgba(55, 148, 255, 0.15)' : 'transparent',
+                              borderLeft: selectedFile?.file_path === file.file_path ? '2px solid var(--accent-cyan)' : '2px solid transparent',
+                              cursor: 'pointer',
+                              borderRadius: '3px',
+                              margin: '1px 0'
+                            }}
+                            onMouseEnter={(e) => {
+                              if (selectedFile?.file_path !== file.file_path) {
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                                e.currentTarget.style.color = '#ffffff';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (selectedFile?.file_path !== file.file_path) {
+                                e.currentTarget.style.background = 'transparent';
+                                e.currentTarget.style.color = 'var(--text-secondary)';
+                              }
+                            }}
+                          >
+                            <span style={{ 
+                              overflow: 'hidden', 
+                              textOverflow: 'ellipsis', 
+                              whiteSpace: 'nowrap',
+                              fontWeight: selectedFile?.file_path === file.file_path ? '500' : '400',
+                            }}>
+                              {file.file_path.split('/').pop()}
+                            </span>
+                            <X 
+                              className="w-3 h-3" 
+                              style={{ cursor: 'pointer', opacity: 0.6 }} 
+                              onClick={(e) => handleCloseEditor(e, file)}
+                              onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                              onMouseLeave={(e) => e.currentTarget.style.opacity = '0.6'}
+                            />
+                          </div>
+                        ))}
+                        {openEditors.length === 0 && (
+                          <div style={{ padding: '12px', fontSize: '11px', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                            No editors open
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
+                    </>
+                  )}
 
                   {/* EXPLORER SECTION */}
                   <div className="flex-row-align" style={{ justifyContent: 'space-between', width: '100%', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '4px', paddingTop: '8px', paddingLeft: '4px', paddingRight: '4px' }}>
@@ -2412,7 +2433,7 @@ function Console() {
                   </div>
     
                   {/* Directory Tree */}
-                  <div className="file-tree-container" style={{ width: '100%', overflowY: 'auto', maxHeight: '200px', paddingRight: '4px' }}>
+                  <div className="file-tree-container" style={{ width: '100%', overflowY: 'auto', maxHeight: explorerView === 'openEditors' ? '200px' : '350px', paddingRight: '4px' }}>
                     {(() => {
                       const filteredFiles = files.filter(file => 
                         file.file_path.toLowerCase().includes(searchQuery.toLowerCase())
