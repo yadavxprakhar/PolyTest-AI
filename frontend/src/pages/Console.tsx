@@ -951,7 +951,7 @@ function Console() {
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(SANDBOX_FILES[1]); // PaymentService.ts
   const [openEditors, setOpenEditors] = useState<FileItem[]>([SANDBOX_FILES[1]]);
   const [explorerMenuOpen, setExplorerMenuOpen] = useState(false);
-  const [explorerView, setExplorerView] = useState<'openEditors' | 'folder' | 'project' | 'builds'>('folder');
+  const [explorerView, setExplorerView] = useState<'openEditors' | 'folder' | 'project' | 'builds' | 'settings'>('folder');
 
   const handleCloseEditor = (e: React.MouseEvent, fileToClose: FileItem) => {
     e.stopPropagation();
@@ -2582,18 +2582,69 @@ function Console() {
                 </div>
               </div>
 
+              {explorerView === 'settings' && (
+                <>
+                  <div className="flex-row-align" style={{ justifyContent: 'space-between', width: '100%', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '8px', paddingLeft: '4px', paddingRight: '4px' }}>
+                    <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Settings className="w-3.5 h-3.5 text-cyan-400" />
+                      Console Settings
+                    </span>
+                  </div>
+                  <div style={{ padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto', maxHeight: '350px' }}>
+                    {/* Theme */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 600 }}>Theme</span>
+                      <select style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#ccc', padding: '4px', borderRadius: '4px', fontSize: '11px', outline: 'none' }}>
+                        <option>Quantum Dark</option>
+                        <option>Abyss Dark</option>
+                        <option>High Contrast</option>
+                      </select>
+                    </div>
+                    {/* Font Size */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 600 }}>Editor Font Size</span>
+                      <input type="number" defaultValue={14} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#ccc', padding: '4px', borderRadius: '4px', fontSize: '11px', outline: 'none', width: '60px' }} />
+                    </div>
+                    {/* Tab Size */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 600 }}>Tab Size</span>
+                      <select style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#ccc', padding: '4px', borderRadius: '4px', fontSize: '11px', outline: 'none' }}>
+                        <option>2 Spaces</option>
+                        <option>4 Spaces</option>
+                        <option>8 Spaces</option>
+                      </select>
+                    </div>
+                    {/* Format on Save */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input type="checkbox" defaultChecked id="formatOnSave" style={{ cursor: 'pointer' }} />
+                      <label htmlFor="formatOnSave" style={{ fontSize: '11px', color: '#ccc', cursor: 'pointer' }}>Format on Save</label>
+                    </div>
+                    {/* Word Wrap */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input type="checkbox" id="wordWrap" style={{ cursor: 'pointer' }} />
+                      <label htmlFor="wordWrap" style={{ fontSize: '11px', color: '#ccc', cursor: 'pointer' }}>Word Wrap</label>
+                    </div>
+                    {/* Auto-save */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input type="checkbox" defaultChecked id="autoSave" style={{ cursor: 'pointer' }} />
+                      <label htmlFor="autoSave" style={{ fontSize: '11px', color: '#ccc', cursor: 'pointer' }}>Auto Save</label>
+                    </div>
+                  </div>
+                </>
+              )}
+
               {/* Bottom builds & settings navigation links */}
               <div className="sidebar-bottom-nav">
-                <div className="sidebar-nav-item active">
-                  <Briefcase className="w-3.5 h-3.5" />
+                <div className={`sidebar-nav-item ${(explorerView === 'project' || explorerView === 'folder') ? 'active' : ''}`} onClick={() => setExplorerView('project')}>
+                  <Briefcase className="w-2.5 h-2.5" />
                   <span>PROJECTS</span>
                 </div>
-                <div className="sidebar-nav-item" onClick={() => setTerminalTab('metrics')}>
-                  <Terminal className="w-3.5 h-3.5" />
+                <div className={`sidebar-nav-item ${explorerView === 'builds' ? 'active' : ''}`} onClick={() => setExplorerView('builds')}>
+                  <Terminal className="w-2.5 h-2.5" />
                   <span>BUILDS</span>
                 </div>
-                <div className="sidebar-nav-item" onClick={() => setCanvasTab('inspector')}>
-                  <Settings className="w-3.5 h-3.5" />
+                <div className={`sidebar-nav-item ${explorerView === 'settings' ? 'active' : ''}`} onClick={() => setExplorerView('settings')}>
+                  <Settings className="w-2.5 h-2.5" />
                   <span>SETTINGS</span>
                 </div>
               </div>
