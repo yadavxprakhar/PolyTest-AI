@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { 
   Play, 
@@ -278,6 +278,231 @@ public class AuthServiceTest {
         UUID sessionToken = UUID.randomUUID();
         authService.invalidateSession(sessionToken);
         // Validates subprocess linter output
+    }
+}`
+};
+
+const MOCK_SOURCE_CODE: Record<string, string> = {
+  'src/services/UserAuth.ts': `import { jwt } from 'jwt';
+import { crypto } from 'crypto';
+import { dbConnector } from 'dbConnector';
+
+export interface User {
+  email: string;
+  id?: string;
+}
+
+export interface Session {
+  sessionId: string;
+  status: string;
+}
+
+export class UserAuth {
+  public async login(user: User, mfaToken: string): Promise<Session> {
+    if (!this.verifyMfaToken(mfaToken)) {
+      throw new Error("Invalid MFA Token");
+    }
+    const hash = await this.hashCredentials(user.email);
+    const sessionId = jwt.sign({ email: user.email, hash }, "SECRET_KEY");
+    return { sessionId, status: 'ACTIVE' };
+  }
+
+  public async logout(sessionId: string): Promise<void> {
+    await dbConnector.invalidate(sessionId);
+  }
+
+  public async requestPasswordReset(email: string): Promise<boolean> {
+    if (!this.validateEmailFormat(email)) {
+      return false;
+    }
+    return dbConnector.queueResetEmail(email);
+  }
+
+  public verifyMfaToken(token: string): boolean {
+    return token.length === 6 && !isNaN(Number(token));
+  }
+
+  private async hashCredentials(pass: string): Promise<string> {
+    return crypto.createHash('sha256').update(pass).digest('hex');
+  }
+}
+
+export function validateEmailFormat(email: string): boolean {
+  return email.includes('@') && email.includes('.');
+}`,
+
+  'src/services/PaymentService.ts': `import { stripe } from 'stripe';
+import { config } from 'config';
+import { Transaction } from 'models/Transaction';
+
+export interface Receipt {
+  id: string;
+  captured: boolean;
+  amount: number;
+}
+
+export class PaymentService {
+  private client: any;
+  private isSandbox: boolean = false;
+
+  public initialize(apiKey: string, sandbox: boolean): void {
+    this.client = new stripe(apiKey);
+    this.isSandbox = sandbox;
+  }
+
+  public async processTransaction(amount: number, currency: string): Promise<Receipt> {
+    const charge = await this.client.charges.create({
+      amount,
+      currency,
+      description: 'PolyTest Automated Transaction Run'
+    });
+    return {
+      id: charge.id,
+      captured: charge.captured,
+      amount: charge.amount
+    };
+  }
+
+  public async refund(transactionId: string, value: number): Promise<Receipt> {
+    const refundObj = await this.client.refunds.create({
+      charge: transactionId,
+      amount: value
+    });
+    return {
+      id: refundObj.id,
+      captured: true,
+      amount: value
+    };
+  }
+
+  public validateCard(cardNumber: string, expiry: string): boolean {
+    if (cardNumber.length !== 16) return false;
+    const parts = expiry.split('/');
+    if (parts.length !== 2) return false;
+    return true;
+  }
+}`,
+
+  'src/api/DataParser.cpp': `#include <iostream>
+#include <vector>
+#include <cmath>
+#include <algorithm>
+
+class DataParser {
+private:
+    std::vector<char> internalBuffer;
+
+public:
+    bool loadBuffer(const char* buffer, size_t len) {
+        if (!buffer || len == 0) return false;
+        internalBuffer.assign(buffer, buffer + len);
+        return true;
+    }
+
+    double computeStandardDeviation(const std::vector<double>& v) {
+        if (v.empty()) return 0.0;
+        double sum = 0.0;
+        for (double val : v) sum += val;
+        double mean = sum / v.size();
+        
+        double accum = 0.0;
+        for (double val : v) {
+            accum += (val - mean) * (val - mean);
+        }
+        return std::sqrt(accum / (v.size() - 1));
+    }
+
+    void flushBuffer() {
+        internalBuffer.clear();
+    }
+};
+
+int initializeDevice() {
+    std::cout << "[Device] Initializing physical data bus..." << std::endl;
+    return 0;
+}
+
+void shutdownDevice() {
+    std::cout << "[Device] Shutting down physical data bus..." << std::endl;
+}`,
+
+  'src/utils.go': `package main
+
+import (
+	"context"
+	"errors"
+	"fmt"
+)
+
+type Order struct {
+	ID       string
+	Subtotal float64
+}
+
+type Receipt struct {
+	OrderID string
+	Tax     float64
+}
+
+func ProcessOrder(ctx context.Context, ord *Order) error {
+	if ord == nil {
+		return errors.New("order cannot be nil")
+	}
+	if ord.ID == "" {
+		return fmt.Errorf("invalid order subtotal or empty id")
+	}
+	fmt.Printf("[Order] Order %s successfully processed\\n", ord.ID)
+	return nil
+}
+
+func CancelOrder(ctx context.Context, id string) error {
+	if id == "" {
+		return errors.New("empty order id")
+	}
+	fmt.Printf("[Order] Cancelling order %s\\n", id)
+	return nil
+}
+
+func CalculateTaxes(subtotal float64, rate float64) float64 {
+	if subtotal <= 0 || rate <= 0 {
+		return 0.0
+	}
+	return subtotal * rate
+}
+
+func DispatchReceipt(receipt *Receipt) <-chan struct{} {
+	ch := make(chan struct{})
+	go func() {
+		defer close(ch)
+		fmt.Printf("[Dispatch] Sending receipt for order %s\\n", receipt.OrderID)
+		ch <- struct{}{}
+	}()
+	return ch
+}`,
+
+  'src/models/AuthService.java': `package com.polytest.services;
+
+import java.util.Date;
+import io.jsonwebtoken.Jwts;
+import javax.crypto.SecretKey;
+
+public class AuthService {
+    public boolean authenticateUser(User user, String pass) {
+        if (user == null || pass == null) {
+            return false;
+        }
+        return pass.equals("adminToken112") && user.getEmail().endsWith("@polytest.ai");
+    }
+
+    public String generateJwtToken(UserPrincipal principal) {
+        return Jwts.builder()
+            .setSubject(principal.getName())
+            .setIssuedAt(new Date())
+            .compact();
+    }
+
+    public void invalidateSession(UUID sessionId) {
+        System.out.println("Session " + sessionId + " invalidated successfully.");
     }
 }`
 };
@@ -1445,126 +1670,231 @@ describe('${baseName} Suite', () => {
             </section>
 
             {/* Center Panel: Dual Canvas Tabs Editor */}
-            <section className="workspace-center-panel">
+            <section className="workspace-center-panel" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
               
-              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', width: '100%', paddingBottom: '0' }}>
+              {/* TOP BAR: Document Tabs on Left, AI Workbench Tabs on Right */}
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between', 
+                background: '#090a0f',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.05)', 
+                width: '100%', 
+                padding: '0 12px',
+                height: '35px',
+                minHeight: '35px',
+                boxSizing: 'border-box'
+              }}>
                 
                 {/* Document tabs */}
-                <div className="editor-tabs-bar">
+                <div className="editor-tabs-bar" style={{ display: 'flex', gap: '2px', height: '100%', alignItems: 'flex-end' }}>
                   <div 
-                    className={`editor-tab-item ${canvasTab !== 'code' ? 'active' : ''}`} 
-                    onClick={() => {
-                      if (canvasTab === 'code') setCanvasTab('inspector');
+                    className={`editor-tab-item active`} 
+                    style={{ 
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '6px 12px',
+                      fontSize: '11px',
+                      fontFamily: 'var(--font-mono)',
+                      color: 'var(--text-primary)',
+                      background: '#08090c',
+                      borderRight: '1px solid rgba(255,255,255,0.05)',
+                      borderTop: '2px solid var(--accent-cyan)',
+                      height: '100%',
+                      boxSizing: 'border-box',
+                      cursor: 'pointer'
                     }}
                   >
                     <FileCode className="w-3.5 h-3.5 text-cyan-400" />
                     <span>{selectedFile ? selectedFile.file_path.split('/').pop() : 'PaymentService.ts'}</span>
                   </div>
-                  <div 
-                    className={`editor-tab-item ${canvasTab === 'code' ? 'active' : ''}`} 
-                    onClick={() => setCanvasTab('code')}
-                  >
-                    <FileCode className="w-3.5 h-3.5 text-purple-400" />
-                    <span>{selectedFile ? `test_${selectedFile.file_path.split('/').pop()}` : 'PaymentService.test.ts'}</span>
-                    <span className="tab-close-btn" style={{ marginLeft: '6px' }}>×</span>
-                  </div>
-                  <div className="editor-tab-item" style={{ opacity: 0.4, cursor: 'not-allowed' }}>
-                    <FileCode className="w-3.5 h-3.5 text-zinc-600" />
-                    <span>db.ts</span>
-                  </div>
                 </div>
 
                 {/* Workspace display toggle canvas tabs */}
-                <div className="workspace-canvas-tabs" style={{ display: 'flex', background: 'rgba(255,255,255,0.02)', padding: '3px', borderRadius: '6px', border: '1px solid var(--border-color)', marginBottom: '4px', gap: '4px', position: 'relative' }}>
+                <div className="workspace-canvas-tabs" style={{ display: 'flex', background: 'rgba(255,255,255,0.02)', padding: '2px', borderRadius: '4px', border: '1px solid rgba(255, 255, 255, 0.05)', gap: '4px' }}>
                   <button
                     onClick={() => setCanvasTab('inspector')}
                     className={`preset-tab-btn ${canvasTab === 'inspector' ? 'active' : ''}`}
-                    style={{ padding: '4px 10px', fontSize: '9px', fontFamily: 'var(--font-mono)', borderRadius: '4px', position: 'relative', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                    style={{ 
+                      padding: '3px 8px', 
+                      fontSize: '9px', 
+                      fontFamily: 'var(--font-mono)', 
+                      borderRadius: '3px', 
+                      position: 'relative', 
+                      background: canvasTab === 'inspector' ? 'rgba(255,255,255,0.05)' : 'transparent', 
+                      border: 'none', 
+                      color: canvasTab === 'inspector' ? '#fff' : 'var(--text-secondary)',
+                      cursor: 'pointer' 
+                    }}
                   >
-                    <span style={{ position: 'relative', zIndex: 2 }}>AST INSPECTOR</span>
-                    {canvasTab === 'inspector' && (
-                      <motion.div 
-                        layoutId="canvasTabBg" 
-                        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(255,255,255,0.05)', borderRadius: '4px', zIndex: 1 }} 
-                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                      />
-                    )}
+                    AST INSPECTOR
                   </button>
                   <button
                     onClick={() => setCanvasTab('linter')}
                     className={`preset-tab-btn ${canvasTab === 'linter' ? 'active' : ''}`}
-                    style={{ padding: '4px 10px', fontSize: '9px', fontFamily: 'var(--font-mono)', borderRadius: '4px', position: 'relative', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                    style={{ 
+                      padding: '3px 8px', 
+                      fontSize: '9px', 
+                      fontFamily: 'var(--font-mono)', 
+                      borderRadius: '3px', 
+                      position: 'relative', 
+                      background: canvasTab === 'linter' ? 'rgba(255,255,255,0.05)' : 'transparent', 
+                      border: 'none', 
+                      color: canvasTab === 'linter' ? '#fff' : 'var(--text-secondary)',
+                      cursor: 'pointer' 
+                    }}
                   >
-                    <span style={{ position: 'relative', zIndex: 2 }}>DRYCOMPILE LINTER</span>
-                    {canvasTab === 'linter' && (
-                      <motion.div 
-                        layoutId="canvasTabBg" 
-                        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(255,255,255,0.05)', borderRadius: '4px', zIndex: 1 }} 
-                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                      />
-                    )}
+                    DRYCOMPILE LINTER
                   </button>
                   <button
                     onClick={() => setCanvasTab('code')}
                     className={`preset-tab-btn ${canvasTab === 'code' ? 'active' : ''}`}
-                    style={{ padding: '4px 10px', fontSize: '9px', fontFamily: 'var(--font-mono)', borderRadius: '4px', position: 'relative', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                    style={{ 
+                      padding: '3px 8px', 
+                      fontSize: '9px', 
+                      fontFamily: 'var(--font-mono)', 
+                      borderRadius: '3px', 
+                      position: 'relative', 
+                      background: canvasTab === 'code' ? 'rgba(255,255,255,0.05)' : 'transparent', 
+                      border: 'none', 
+                      color: canvasTab === 'code' ? '#fff' : 'var(--text-secondary)',
+                      cursor: 'pointer' 
+                    }}
                   >
-                    <span style={{ position: 'relative', zIndex: 2 }}>CODE PREVIEW</span>
-                    {canvasTab === 'code' && (
-                      <motion.div 
-                        layoutId="canvasTabBg" 
-                        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(255,255,255,0.05)', borderRadius: '4px', zIndex: 1 }} 
-                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                      />
-                    )}
+                    CODE PREVIEW
                   </button>
                 </div>
 
               </div>
-              <div className="active-file-tab-line" />
 
-              <div className="workspace-canvas">
+              {/* DUAL PANE WORKSPACE SPLIT */}
+              <div style={{ display: 'flex', flex: 1, overflow: 'hidden', width: '100%' }}>
                 
-                {/* 1. Inspector Canvas Mode */}
-                {canvasTab === 'inspector' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', flex: 1, height: '100%' }}>
-                    
-                    {/* Header bar */}
-                    <div className="canvas-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', marginBottom: '16px' }}>
-                      <div style={{ textAlign: 'left' }}>
-                        <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                {/* LEFT PANE: Syntax Highlighted Original Source Code Editor */}
+                <div style={{ 
+                  flex: 1.1, 
+                  borderRight: '1px solid rgba(255, 255, 255, 0.05)', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  background: '#08090c', 
+                  overflow: 'hidden' 
+                }}>
+                  {/* Breadcrumbs Row */}
+                  <div className="editor-breadcrumbs" style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '6px', 
+                    padding: '8px 16px', 
+                    background: '#08090c', 
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.03)',
+                    fontSize: '10px', 
+                    fontFamily: 'var(--font-mono)', 
+                    color: 'var(--text-secondary)',
+                    textAlign: 'left'
+                  }}>
+                    {(() => {
+                      const breadcrumbs = selectedFile 
+                        ? ['polytest-sandbox', ...selectedFile.file_path.split('/')] 
+                        : ['polytest-sandbox', 'src', 'services', 'PaymentService.ts'];
+                      return breadcrumbs.map((crumb, idx) => (
+                        <React.Fragment key={idx}>
+                          {idx > 0 && <span style={{ opacity: 0.3 }}>/</span>}
+                          <span style={{ color: idx === breadcrumbs.length - 1 ? 'var(--accent-cyan)' : 'inherit' }}>
+                            {crumb}
+                          </span>
+                        </React.Fragment>
+                      ));
+                    })()}
+                  </div>
+
+                  {/* Code Editor Body */}
+                  <div style={{ 
+                    flex: 1, 
+                    overflowY: 'auto', 
+                    padding: '16px', 
+                    background: '#08090c', 
+                    textAlign: 'left' 
+                  }}>
+                    {renderHighlightedCode(
+                      selectedFile 
+                        ? (MOCK_SOURCE_CODE[selectedFile.file_path] || `// No source code for ${selectedFile.file_path}`)
+                        : `// Load a sandbox file to view code`
+                    )}
+                  </div>
+
+                  {/* Editor Status Bar */}
+                  <div style={{ 
+                    height: '24px', 
+                    background: '#090a0f', 
+                    borderTop: '1px solid rgba(255, 255, 255, 0.05)', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between', 
+                    padding: '0 12px', 
+                    fontSize: '10px', 
+                    fontFamily: 'var(--font-mono)', 
+                    color: 'var(--text-muted)' 
+                  }}>
+                    <div>
+                      <span>Ln 1, Col 1</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                      <span>Spaces: 2</span>
+                      <span>UTF-8</span>
+                      <span style={{ color: 'var(--accent-cyan)' }}>
+                        {(selectedFile?.language || 'TypeScript').toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* RIGHT PANE: Interactive AI Workbench Tools */}
+                <div style={{ 
+                  flex: 0.9, 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  background: '#090a0f', 
+                  overflow: 'hidden' 
+                }}>
+                  
+                  {/* Tab views nested stacking */}
+                  
+                  {/* AST INSPECTOR */}
+                  {canvasTab === 'inspector' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', padding: '12px' }}>
+                      
+                      {/* AST Header banner */}
+                      <div style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)', paddingBottom: '10px', marginBottom: '12px', textAlign: 'left' }}>
+                        <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '9px' }}>
                           <Binary className="w-3.5 h-3.5 text-cyan-400" />
                           AST Structural Parser
                         </span>
-                        <h2 style={{ fontSize: '13px', fontWeight: 600, fontFamily: 'var(--font-mono)', color: '#fff', marginTop: '4px' }}>
-                          module: {selectedFile?.file_path.split('/').pop() || 'None'}
-                        </h2>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                          <h2 style={{ fontSize: '11px', fontWeight: 600, fontFamily: 'var(--font-mono)', color: '#fff', margin: 0 }}>
+                            {selectedFile?.file_path.split('/').pop() || 'None'}
+                          </h2>
+                          <span style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', background: 'rgba(0, 245, 255, 0.05)', border: '1px solid rgba(0,245,255,0.12)', color: 'var(--accent-cyan)', padding: '2px 6px', borderRadius: '3px' }}>
+                            Complexity: {parsedStructure?.complexity || 'Low'}
+                          </span>
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <span style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', background: 'rgba(0, 245, 255, 0.05)', border: '1px solid rgba(0,245,255,0.15)', color: 'var(--accent-cyan)', padding: '2px 8px', borderRadius: '4px' }}>
-                          Complexity: {parsedStructure?.complexity || 'Low'}
-                        </span>
-                      </div>
-                    </div>
 
-                    {isLoadingAnalysis ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', flex: 1 }}>
-                        <RefreshCw className="w-6 h-6 text-cyan-400 animate-spin" />
-                        <p style={{ fontSize: '11px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>Statically profiling AST nodes...</p>
-                      </div>
-                    ) : parsedStructure ? (
-                      <div className="ast-layout-split-columns" style={{ display: 'flex', gap: '16px', flex: 1, minHeight: 0 }}>
-                        
-                        {/* LEFT COLUMN: AST Class & Method Tree explorer */}
-                        <div className="ast-tree-column" style={{ flex: 1.2, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', paddingRight: '4px' }}>
+                      {isLoadingAnalysis ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', flex: 1 }}>
+                          <RefreshCw className="w-5 h-5 text-cyan-400 animate-spin" />
+                          <p style={{ fontSize: '10px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>Profiling AST nodes...</p>
+                        </div>
+                      ) : parsedStructure ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1, overflowY: 'auto' }}>
                           
-                          {/* Module global Imports badge box */}
+                          {/* Global Imports badge box */}
                           {parsedStructure.imports && parsedStructure.imports.length > 0 && (
-                            <div className="ast-imports-summary-panel">
+                            <div className="ast-imports-summary-panel" style={{ padding: '8px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', borderRadius: '4px', textAlign: 'left' }}>
                               <span className="mono-label" style={{ fontSize: '8px', marginBottom: '6px', display: 'block', color: 'var(--text-muted)' }}>GLOBAL IMPORT DEPENDENCIES</span>
-                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                                 {parsedStructure.imports.map((imp, idx) => (
-                                  <span key={idx} className="ast-import-tag">
+                                  <span key={idx} className="ast-import-tag" style={{ fontSize: '9px', padding: '1px 5px' }}>
                                     {imp}
                                   </span>
                                 ))}
@@ -1572,323 +1902,253 @@ describe('${baseName} Suite', () => {
                             </div>
                           )}
 
-                          {/* Class declarations */}
-                          {parsedStructure.classes.map((cls, classIdx) => (
-                            <div key={classIdx} className="ast-class-node-group">
-                              <div className="ast-class-header-row">
-                                <Code className="w-3.5 h-3.5 text-cyan-400" />
-                                <span className="ast-class-keyword">class</span>
-                                <span className="ast-class-name-label">{cls.name}</span>
-                              </div>
-
-                              <div className="ast-class-children-methods" style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginLeft: '12px', borderLeft: '1px solid rgba(255,255,255,0.04)', paddingLeft: '12px', marginTop: '6px' }}>
-                                {cls.methods.map((method, methodIdx) => {
-                                  const isSelected = selectedMethods.includes(method.name);
-                                  const isFocused = activeNode === method.name;
-                                  return (
-                                    <motion.div
-                                      key={methodIdx}
-                                      onClick={() => {
-                                        toggleMethod(method.name);
-                                        setActiveNode(method.name);
-                                      }}
-                                      whileHover={{ scale: 1.01, x: 2 }}
-                                      whileTap={{ scale: 0.99 }}
-                                      className={`ast-node-card-block ${isSelected ? 'selected' : ''} ${isFocused ? 'focused' : ''}`}
-                                    >
-                                      <div className="ast-node-card-left">
-                                        <div className={`ast-node-checkbox ${isSelected ? 'checked' : ''}`}>
-                                          {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
-                                        </div>
-                                        <div className="ast-node-tag-indicators">
-                                          <span className="ast-node-modifier">public</span>
-                                          <span className="ast-node-name-text">{method.name}()</span>
-                                        </div>
-                                      </div>
-                                      <div className="ast-node-card-right">
-                                        <span className="ast-node-type-label">method</span>
-                                      </div>
-                                    </motion.div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          ))}
-
-                          {/* Isolated Function declarations (if any) */}
-                          {parsedStructure.functions && parsedStructure.functions.length > 0 && (
-                            <div className="ast-class-node-group" style={{ marginTop: '8px' }}>
-                              <div className="ast-class-header-row">
-                                <Layers className="w-3.5 h-3.5 text-purple-400" />
-                                <span className="ast-class-keyword" style={{ color: 'var(--accent-purple)' }}>module</span>
-                                <span className="ast-class-name-label" style={{ color: 'var(--text-muted)' }}>functions</span>
-                              </div>
-
-                              <div className="ast-class-children-methods" style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginLeft: '12px', borderLeft: '1px solid rgba(255,255,255,0.04)', paddingLeft: '12px', marginTop: '6px' }}>
-                                {parsedStructure.functions.map((func, funcIdx) => {
-                                  const isSelected = selectedMethods.includes(func.name);
-                                  const isFocused = activeNode === func.name;
-                                  return (
-                                    <motion.div
-                                      key={funcIdx}
-                                      onClick={() => {
-                                        toggleMethod(func.name);
-                                        setActiveNode(func.name);
-                                      }}
-                                      whileHover={{ scale: 1.01, x: 2 }}
-                                      whileTap={{ scale: 0.99 }}
-                                      className={`ast-node-card-block ${isSelected ? 'selected' : ''} ${isFocused ? 'focused' : ''}`}
-                                    >
-                                      <div className="ast-node-card-left">
-                                        <div className={`ast-node-checkbox ${isSelected ? 'checked' : ''}`}>
-                                          {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
-                                        </div>
-                                        <div className="ast-node-tag-indicators">
-                                          <span className="ast-node-modifier" style={{ color: 'var(--accent-purple)', background: 'rgba(140,82,255,0.05)' }}>export</span>
-                                          <span className="ast-node-name-text">{func.name}()</span>
-                                        </div>
-                                      </div>
-                                      <div className="ast-node-card-right">
-                                        <span className="ast-node-type-label" style={{ color: 'var(--accent-purple)' }}>func</span>
-                                      </div>
-                                    </motion.div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          )}
-
-                        </div>
-
-                        {/* RIGHT COLUMN: Holographic Token Debug Inspector */}
-                        <div className="ast-inspector-sidebar" style={{ flex: 0.9, display: 'flex', flexDirection: 'column', background: 'rgba(3,7,18,0.3)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px', overflowY: 'auto' }}>
-                          
-                          {activeNode ? (() => {
-                            // Find args details for active method/function
-                            let matchedArgs = '';
-                            
-                            parsedStructure.classes.forEach(c => {
-                              const found = c.methods.find(m => m.name === activeNode);
-                              if (found) {
-                                matchedArgs = found.args;
-                              }
-                            });
-                            
-                            if (!matchedArgs && parsedStructure.functions) {
-                              const foundFunc = parsedStructure.functions.find(f => f.name === activeNode);
-                              if (foundFunc) {
-                                matchedArgs = foundFunc.args;
-                              }
-                            }
-
-                            return (
-                              <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '14px', height: '100%' }}>
-                                
-                                <div>
-                                  <span className="mono-label" style={{ color: 'var(--accent-cyan)', fontSize: '8px' }}>NODE TOKEN INSPECTOR</span>
-                                  <h3 style={{ fontSize: '14px', fontFamily: 'var(--font-mono)', fontWeight: 600, color: '#fff', marginTop: '4px' }}>
-                                    {activeNode}()
-                                  </h3>
+                          {/* AST Methods list */}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {parsedStructure.classes.map((cls, classIdx) => (
+                              <div key={classIdx} className="ast-class-node-group" style={{ textAlign: 'left' }}>
+                                <div className="ast-class-header-row" style={{ padding: '4px 0', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px' }}>
+                                  <Code className="w-3.5 h-3.5 text-cyan-400" />
+                                  <span className="ast-class-keyword" style={{ color: 'var(--accent-cyan)' }}>class</span>
+                                  <span className="ast-class-name-label" style={{ fontWeight: 600 }}>{cls.name}</span>
                                 </div>
 
-                                <div className="hud-metric-row-small" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '10px' }}>
-                                  <div className="hud-metric-label">Access Scope:</div>
-                                  <div className="hud-metric-value" style={{ color: 'var(--accent-green)', fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 600 }}>PUBLIC</div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginLeft: '8px', borderLeft: '1px solid rgba(255,255,255,0.04)', paddingLeft: '8px', marginTop: '4px' }}>
+                                  {cls.methods.map((method, methodIdx) => {
+                                    const isSelected = selectedMethods.includes(method.name);
+                                    const isFocused = activeNode === method.name;
+                                    return (
+                                      <motion.div
+                                        key={methodIdx}
+                                        onClick={() => {
+                                          toggleMethod(method.name);
+                                          setActiveNode(method.name);
+                                        }}
+                                        whileHover={{ scale: 1.01, x: 2 }}
+                                        whileTap={{ scale: 0.99 }}
+                                        className={`ast-node-card-block ${isSelected ? 'selected' : ''} ${isFocused ? 'focused' : ''}`}
+                                        style={{ padding: '6px 8px', borderRadius: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: isFocused ? 'rgba(0, 245, 255, 0.05)' : isSelected ? 'rgba(255,255,255,0.02)' : 'transparent', border: '1px solid rgba(255,255,255,0.03)', cursor: 'pointer' }}
+                                      >
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                          <div className={`ast-node-checkbox ${isSelected ? 'checked' : ''}`} style={{ width: '12px', height: '12px', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            {isSelected && <Check className="w-2 h-2 stroke-[3]" />}
+                                          </div>
+                                          <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: isFocused ? '#fff' : 'var(--text-secondary)' }}>{method.name}()</span>
+                                        </div>
+                                        <span style={{ fontSize: '8px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>method</span>
+                                      </motion.div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            ))}
+
+                            {parsedStructure.functions && parsedStructure.functions.length > 0 && (
+                              <div className="ast-class-node-group" style={{ textAlign: 'left' }}>
+                                <div className="ast-class-header-row" style={{ padding: '4px 0', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px' }}>
+                                  <Layers className="w-3.5 h-3.5 text-purple-400" />
+                                  <span className="ast-class-keyword" style={{ color: 'var(--accent-purple)' }}>module</span>
+                                  <span className="ast-class-name-label" style={{ color: 'var(--text-muted)' }}>functions</span>
                                 </div>
 
-                                <div className="hud-metric-row-small" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '10px' }}>
-                                  <div className="hud-metric-label">Async context:</div>
-                                  <div className="hud-metric-value" style={{ color: 'var(--accent-cyan)', fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 600 }}>
-                                    {matchedArgs.includes('Promise') || matchedArgs.includes('chan') ? 'TRUE' : 'FALSE'}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginLeft: '8px', borderLeft: '1px solid rgba(255,255,255,0.04)', paddingLeft: '8px', marginTop: '4px' }}>
+                                  {parsedStructure.functions.map((func, funcIdx) => {
+                                    const isSelected = selectedMethods.includes(func.name);
+                                    const isFocused = activeNode === func.name;
+                                    return (
+                                      <motion.div
+                                        key={funcIdx}
+                                        onClick={() => {
+                                          toggleMethod(func.name);
+                                          setActiveNode(func.name);
+                                        }}
+                                        whileHover={{ scale: 1.01, x: 2 }}
+                                        whileTap={{ scale: 0.99 }}
+                                        className={`ast-node-card-block ${isSelected ? 'selected' : ''} ${isFocused ? 'focused' : ''}`}
+                                        style={{ padding: '6px 8px', borderRadius: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: isFocused ? 'rgba(140, 82, 255, 0.05)' : isSelected ? 'rgba(255,255,255,0.02)' : 'transparent', border: '1px solid rgba(255,255,255,0.03)', cursor: 'pointer' }}
+                                      >
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                          <div className={`ast-node-checkbox ${isSelected ? 'checked' : ''}`} style={{ width: '12px', height: '12px', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            {isSelected && <Check className="w-2 h-2 stroke-[3]" />}
+                                          </div>
+                                          <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: isFocused ? '#fff' : 'var(--text-secondary)' }}>{func.name}()</span>
+                                        </div>
+                                        <span style={{ fontSize: '8px', fontFamily: 'var(--font-mono)', color: 'var(--accent-purple)' }}>func</span>
+                                      </motion.div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Token signature pane nested beautifully */}
+                          <div style={{ background: 'rgba(3,7,18,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '6px', padding: '10px', marginTop: 'auto', textAlign: 'left' }}>
+                            {activeNode ? (() => {
+                              let matchedArgs = '';
+                              parsedStructure.classes.forEach(c => {
+                                const found = c.methods.find(m => m.name === activeNode);
+                                if (found) matchedArgs = found.args;
+                              });
+                              if (!matchedArgs && parsedStructure.functions) {
+                                const foundFunc = parsedStructure.functions.find(f => f.name === activeNode);
+                                if (foundFunc) matchedArgs = foundFunc.args;
+                              }
+                              return (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                  <div>
+                                    <span className="mono-label" style={{ color: 'var(--accent-cyan)', fontSize: '8px' }}>TOKEN INSPECTOR</span>
+                                    <h4 style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: '#fff', margin: '2px 0 0 0' }}>{activeNode}()</h4>
                                   </div>
-                                </div>
-
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                  <span className="mono-label" style={{ fontSize: '8px', color: 'var(--text-muted)' }}>ARGUMENTS & RETURN SIGNATURE</span>
-                                  <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '10px', borderRadius: '6px', fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--accent-cyan)', overflowX: 'auto', whiteSpace: 'nowrap' }}>
+                                  <div style={{ background: 'rgba(0,0,0,0.2)', padding: '6px', borderRadius: '4px', fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--accent-cyan)', overflowX: 'auto', whiteSpace: 'nowrap' }}>
                                     {matchedArgs}
                                   </div>
                                 </div>
-
-                                <div style={{ marginTop: 'auto', background: 'rgba(0, 245, 255, 0.02)', border: '1px solid rgba(0, 245, 255, 0.08)', padding: '10px', borderRadius: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                  <span className="mono-label" style={{ fontSize: '8px', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <Activity className="w-3 h-3 animate-pulse" />
-                                    TEST SUITE GENERATION TARGET
-                                  </span>
-                                  <p style={{ fontSize: '10px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                                    Selecting this node generates isolated mock test classes covering boundary ranges and argument types.
-                                  </p>
-                                </div>
-
+                              );
+                            })() : (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)' }}>
+                                <Sliders className="w-4 h-4 text-cyan-400 opacity-60" />
+                                <span style={{ fontSize: '9px', fontFamily: 'var(--font-mono)' }}>Click any method to inspect compilation tokens</span>
                               </div>
-                            );
-                          })() : (
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '10px', color: 'var(--text-secondary)', textAlign: 'center' }}>
-                              <Sliders className="w-5 h-5 text-cyan-400 opacity-60" style={{ animation: 'bounce 2s infinite' }} />
-                              <div>
-                                <h4 style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: '#fff' }}>Token Inspector Idle</h4>
-                                <p style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '4px', maxWidth: '160px', marginLeft: 'auto', marginRight: 'auto', lineHeight: '1.4' }}>
-                                  Click any class method in the left panel to inspect detailed compilation tokens!
-                                </p>
-                              </div>
-                            </div>
-                          )}
+                            )}
+                          </div>
 
                         </div>
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+                          <p style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>Select a sandbox file to load AST.</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-                        <p style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic', fontFamily: 'var(--font-mono)' }}>Select a module file from Explorer tree.</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* 1.5. Drycompile Linter Canvas Mode */}
-                {canvasTab === 'linter' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', flex: 1, height: '100%' }}>
-                    
-                    {/* Header HUD panel */}
-                    <div className="canvas-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', marginBottom: '16px' }}>
-                      <div style={{ textAlign: 'left' }}>
-                        <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {/* DRYCOMPILE LINTER */}
+                  {canvasTab === 'linter' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', padding: '12px' }}>
+                      
+                      {/* Linter Header banner */}
+                      <div style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)', paddingBottom: '10px', marginBottom: '12px', textAlign: 'left' }}>
+                        <span className="mono-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '9px' }}>
                           <ShieldAlert className="w-3.5 h-3.5 text-cyan-400" />
                           Drycompile Subprocess Linter
                         </span>
-                        <h2 style={{ fontSize: '13px', fontWeight: 600, fontFamily: 'var(--font-mono)', color: '#fff', marginTop: '4px' }}>
-                          target: {selectedFile?.file_path || 'No module loaded'}
-                        </h2>
-                      </div>
-
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <span style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.15)', color: 'var(--accent-green)', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <span className="nav-status-dot active" style={{ width: '4px', height: '4px' }}></span>
-                          COMPILER OK: {selectedFile?.language.toUpperCase()} LINT RUNNER
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="linter-dashboard-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: '16px', flex: 1, minHeight: 0 }}>
-                      
-                      {/* Left: Terminal Output of Compilation Scanner */}
-                      <div className="linter-terminal-side" style={{ gridColumn: 'span 7', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <span className="mono-label" style={{ textAlign: 'left' }}>Subprocess drycompile scanner output</span>
-                        <div style={{ flex: 1, background: '#02040a', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px', fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--text-secondary)', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto', maxHeight: '42vh' }}>
-                          <div style={{ color: 'var(--text-muted)' }}>[polytest-subprocess] Initializing drycompile thread for {selectedFile?.file_path.split('/').pop()}...</div>
-                          <div style={{ color: 'var(--accent-cyan)' }}>[compiler-dryrun] Executing offline sandbox check: {selectedFile?.language === 'typescript' ? 'node --check' : selectedFile?.language === 'java' ? 'javac -Xlint' : 'gcc -fsyntax-only'}</div>
-                          <div>[compiler-dryrun] Resolving import tokens mapping...</div>
-                          {parsedStructure?.imports.map((imp, idx) => (
-                            <div key={idx} style={{ color: 'var(--text-muted)', paddingLeft: '12px' }}>✓ Resolved import dependency: {imp}</div>
-                          ))}
-                          <div style={{ color: 'var(--accent-green)' }}>[compiler-dryrun] Syntax evaluation completed: ZERO exception nodes detected in file AST.</div>
-                          <div style={{ color: 'var(--accent-cyan)' }}>[polytest-subprocess] Sandbox isolation cleared. 0 bytes written to disk.</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                          <h2 style={{ fontSize: '11px', fontWeight: 600, fontFamily: 'var(--font-mono)', color: '#fff', margin: 0 }}>
+                            {selectedFile?.file_path.split('/').pop() || 'No module'}
+                          </h2>
+                          <span style={{ fontSize: '8px', fontFamily: 'var(--font-mono)', background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.15)', color: 'var(--accent-green)', padding: '1px 5px', borderRadius: '3px' }}>
+                            COMPILER OK
+                          </span>
                         </div>
                       </div>
 
-                      {/* Right: Diagnostic Warning registry table */}
-                      <div className="linter-diagnostics-side" style={{ gridColumn: 'span 5', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <span className="mono-label" style={{ textAlign: 'left' }}>Active compiler warning registry</span>
-                        
-                        <div className="warning-card-registry" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                          
-                          {/* Diagnostic 1 */}
-                          <div className="linter-warning-card" style={{ background: 'rgba(255,243,205,0.01)', border: '1px solid rgba(255, 193, 7, 0.15)', borderRadius: '8px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'left' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)' }}>Line 14 : CryptoKey</span>
-                              <span style={{ fontSize: '8px', fontFamily: 'var(--font-mono)', background: 'rgba(255, 193, 7, 0.05)', color: '#ffc107', padding: '1px 6px', borderRadius: '3px', border: '1px solid rgba(255, 193, 7, 0.2)' }}>WARNING</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1, overflowY: 'auto' }}>
+                        {/* Subprocess drycompile scanner output */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                          <span className="mono-label" style={{ fontSize: '8px' }}>SANDBOX COMPILER SCANNER LOGS</span>
+                          <div style={{ background: '#02040a', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '6px', padding: '10px', fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto', maxHeight: '150px' }}>
+                            <div style={{ color: 'var(--text-muted)' }}>[polytest-subprocess] Initializing drycompile for {selectedFile?.file_path.split('/').pop()}...</div>
+                            <div style={{ color: 'var(--accent-cyan)' }}>[compiler-dryrun] Offline check: {selectedFile?.language === 'typescript' ? 'node --check' : selectedFile?.language === 'java' ? 'javac -Xlint' : 'gcc -fsyntax-only'}</div>
+                            <div>[compiler-dryrun] Resolving import tokens...</div>
+                            {parsedStructure?.imports.map((imp, idx) => (
+                              <div key={idx} style={{ color: 'var(--text-muted)', paddingLeft: '8px' }}>✓ Dependency: {imp}</div>
+                            ))}
+                            <div style={{ color: 'var(--accent-green)' }}>[compiler-dryrun] Syntax ok: AST analysis completed.</div>
+                          </div>
+                        </div>
+
+                        {/* Compiler warnings registry */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
+                          <span className="mono-label" style={{ fontSize: '8px' }}>COMPILER WARNING REGISTRY</span>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <div style={{ background: 'rgba(255, 193, 7, 0.02)', border: '1px solid rgba(255, 193, 7, 0.1)', borderRadius: '6px', padding: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '9px', fontFamily: 'var(--font-mono)' }}>
+                                <span style={{ color: 'var(--accent-cyan)' }}>Line 14 : CryptoKey</span>
+                                <span style={{ color: '#ffc107', background: 'rgba(255, 193, 7, 0.05)', padding: '1px 4px', borderRadius: '2px', border: '1px solid rgba(255, 193, 7, 0.15)', fontSize: '8px' }}>WARNING</span>
+                              </div>
+                              <p style={{ fontSize: '10px', color: 'var(--text-primary)', margin: 0 }}>Avoid raw types in cryptokey initialization.</p>
                             </div>
-                            <p style={{ fontSize: '11px', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', lineHeight: '1.4' }}>
-                              Avoid raw types in cryptokey initialization.
-                            </p>
-                            <div style={{ fontSize: '9px', color: 'var(--text-muted)', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: '6px' }}>
-                              <strong style={{ color: 'var(--accent-cyan)' }}>Remedy:</strong> Use strict CryptoKey parameters to avoid serialization error bounds.
+
+                            <div style={{ background: 'rgba(255, 255, 255, 0.01)', border: '1px solid rgba(255, 255, 255, 0.04)', borderRadius: '6px', padding: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '9px', fontFamily: 'var(--font-mono)' }}>
+                                <span style={{ color: 'var(--accent-cyan)' }}>Line 42 : PaymentType</span>
+                                <span style={{ color: 'var(--text-secondary)', background: 'rgba(255, 255, 255, 0.02)', padding: '1px 4px', borderRadius: '2px', border: '1px solid rgba(255, 255, 255, 0.06)', fontSize: '8px' }}>ADVISORY</span>
+                              </div>
+                              <p style={{ fontSize: '10px', color: 'var(--text-primary)', margin: 0 }}>Implicit any in transaction parameter declaration.</p>
                             </div>
                           </div>
-
-                          {/* Diagnostic 2 */}
-                          <div className="linter-warning-card" style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '8px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'left' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)' }}>Line 42 : PaymentType</span>
-                              <span style={{ fontSize: '8px', fontFamily: 'var(--font-mono)', background: 'rgba(255, 255, 255, 0.02)', color: 'var(--text-secondary)', padding: '1px 6px', borderRadius: '3px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>ADVISORY</span>
-                            </div>
-                            <p style={{ fontSize: '11px', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', lineHeight: '1.4' }}>
-                              Implicit any in transaction parameter declaration.
-                            </p>
-                            <div style={{ fontSize: '9px', color: 'var(--text-muted)', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: '6px' }}>
-                              <strong style={{ color: 'var(--accent-cyan)' }}>Remedy:</strong> Cast transaction parameter explicitly to Transaction interface.
-                            </div>
-                          </div>
-
                         </div>
 
                       </div>
-
                     </div>
+                  )}
 
-                  </div>
-                )}
-
-                {/* 2. Code Preview Canvas Mode (IDE editor window) */}
-                {canvasTab === 'code' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                    <div className="canvas-header">
-                      <div style={{ textAlign: 'left' }}>
-                        <span className="mono-label">Generated Test Suite Preview</span>
-                        <h2 style={{ fontSize: '13px', fontWeight: 600, fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', marginTop: '4px' }}>
-                          test_{selectedFile?.file_path.split('/').pop()}
-                        </h2>
-                      </div>
+                  {/* CODE PREVIEW */}
+                  {canvasTab === 'code' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', padding: '12px' }}>
                       
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(currentGeneratedCode);
-                            setTerminalLogs(prev => [...prev, '📋 Copied unit test suite code to clipboard!']);
-                          }}
-                          className="icon-button-hud"
-                          title="Copy test code"
-                          style={{ padding: '6px 12px', fontSize: '10px', display: 'flex', gap: '6px' }}
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                          Copy
-                        </button>
-                        <button
-                          onClick={() => {
-                            const blob = new Blob([currentGeneratedCode], { type: 'text/plain' });
-                            const link = document.createElement('a');
-                            link.href = URL.createObjectURL(blob);
-                            link.download = `test_${selectedFile?.file_path.split('/').pop()}`;
-                            link.click();
-                            setTerminalLogs(prev => [...prev, `💾 Saved file local: test_${selectedFile?.file_path.split('/').pop()}`]);
-                          }}
-                          className="icon-button-hud"
-                          title="Export test suite file"
-                          style={{ padding: '6px 12px', fontSize: '10px', display: 'flex', gap: '6px', color: 'var(--accent-cyan)', borderColor: 'var(--accent-cyan)' }}
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                          Save Suite
-                        </button>
-                      </div>
-                    </div>
-
-                    {useCache && (
-                      <div className="prompt-cache-active-banner" style={{ marginTop: '12px', marginBottom: '0px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span className="cache-pulse-dot" />
-                          <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--accent-green)' }}>ACTIVE (HIT) Prompt Cache Indicator</span>
+                      {/* Code Preview Header */}
+                      <div style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)', paddingBottom: '10px', marginBottom: '12px', textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <span className="mono-label" style={{ fontSize: '9px' }}>Generated Test Suite Preview</span>
+                          <h2 style={{ fontSize: '11px', fontWeight: 600, fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', margin: '2px 0 0 0' }}>
+                            test_{selectedFile?.file_path.split('/').pop()}
+                          </h2>
                         </div>
-                        <span className="cache-hash-badge">md5:8b1a5e52a9a4d2e8b0a5f4c3d2e1a0b5</span>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(currentGeneratedCode);
+                              setTerminalLogs(prev => [...prev, '📋 Copied unit test suite code to clipboard!']);
+                            }}
+                            className="icon-button-hud"
+                            title="Copy code"
+                            style={{ padding: '4px 8px', fontSize: '9px', display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '3px', cursor: 'pointer', color: '#fff' }}
+                          >
+                            <Copy className="w-3 h-3" />
+                            Copy
+                          </button>
+                          <button
+                            onClick={() => {
+                              const blob = new Blob([currentGeneratedCode], { type: 'text/plain' });
+                              const link = document.createElement('a');
+                              link.href = URL.createObjectURL(blob);
+                              link.download = `test_${selectedFile?.file_path.split('/').pop()}`;
+                              link.click();
+                              setTerminalLogs(prev => [...prev, `💾 Saved file local: test_${selectedFile?.file_path.split('/').pop()}`]);
+                            }}
+                            className="icon-button-hud"
+                            title="Save"
+                            style={{ padding: '4px 8px', fontSize: '9px', display: 'flex', gap: '4px', background: 'transparent', border: '1px solid var(--accent-cyan)', borderRadius: '3px', cursor: 'pointer', color: 'var(--accent-cyan)' }}
+                          >
+                            <Download className="w-3 h-3" />
+                            Save
+                          </button>
+                        </div>
                       </div>
-                    )}
 
-                    <div className="code-editor-pane" style={{ background: '#02040a', border: '1px solid rgba(255,255,255,0.03)', borderRadius: '8px', padding: '16px', marginTop: '12px', overflowY: 'auto', maxHeight: '52vh', flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      {renderHighlightedCode(currentGeneratedCode)}
+                      {/* Cache Hit indicator */}
+                      {useCache && (
+                        <div className="prompt-cache-active-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 8px', background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.15)', borderRadius: '4px', marginBottom: '8px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span className="cache-pulse-dot" style={{ width: '4px', height: '4px', background: 'var(--accent-green)', borderRadius: '50%', display: 'inline-block' }} />
+                            <span style={{ fontSize: '9px', fontWeight: 600, color: 'var(--accent-green)', fontFamily: 'var(--font-mono)' }}>PROMPT CACHE HIT</span>
+                          </div>
+                          <span className="cache-hash-badge" style={{ fontSize: '8px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>md5:8b1a5e...</span>
+                        </div>
+                      )}
+
+                      {/* Test Preview Code Panel */}
+                      <div className="code-editor-pane" style={{ flex: 1, background: '#02040a', border: '1px solid rgba(255,255,255,0.03)', borderRadius: '4px', padding: '10px', overflowY: 'auto', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                        {renderHighlightedCode(currentGeneratedCode)}
+                      </div>
+
                     </div>
-                  </div>
-                )}
+                  )}
+
+                </div>
 
               </div>
+
             </section>
 
             {/* Right Side: Segmented Presets & Sliders */}

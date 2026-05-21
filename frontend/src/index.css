@@ -839,25 +839,33 @@ p {
   border: 1px solid var(--border-color);
 }
 
-/* 3-Column main console workspace grid */
+/* 3-Column main console workspace grid - Redesigned as a zero-margin flat IDE Dock */
 .workspace-grid-crisp {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 20px;
-  max-w: 1600px;
+  display: flex;
   width: 100%;
-  margin: 0 auto;
-  padding: 20px;
-  flex: 1;
+  height: calc(100vh - 48px);
+  margin: 0;
+  padding: 0;
+  background: #08090c;
+  overflow: hidden;
+  gap: 0;
+  max-width: 100%;
 }
 
-/* 1. IDE Sidebar files explorer */
+/* 1. IDE Sidebar files explorer - Redesigned flat */
 .ide-explorer-panel {
-  grid-column: span 3;
-  padding: 16px;
+  width: 250px;
+  min-width: 250px;
+  background: #0b0c11;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
+  padding: 12px;
+  height: 100%;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  margin: 0;
   text-align: left;
 }
 
@@ -866,7 +874,7 @@ p {
   flex-direction: column;
   gap: 2px;
   overflow-y: auto;
-  max-height: 52vh;
+  flex: 1;
 }
 
 .tree-node-folder {
@@ -893,7 +901,7 @@ p {
   align-items: center;
   gap: 8px;
   padding: 6px 10px;
-  border-radius: 6px;
+  border-radius: 4px;
   font-size: 11px;
   font-family: var(--font-mono);
   color: var(--text-secondary);
@@ -913,18 +921,22 @@ p {
 }
 
 .source-root-banner {
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid var(--border-color);
-  padding: 10px 12px;
-  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 8px 10px;
+  border-radius: 4px;
   margin-top: auto;
 }
 
 /* 2. Workspace Center (Editor Code AST explorer) */
 .workspace-center-panel {
-  grid-column: span 6;
+  flex: 1;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: #08090c;
+  margin: 0;
 }
 
 .active-file-tab-crisp {
@@ -935,30 +947,31 @@ p {
   font-size: 11px;
   font-family: var(--font-mono);
   color: var(--text-primary);
-  background: var(--bg-card);
-  border-top: 1px solid var(--border-color);
-  border-left: 1px solid var(--border-color);
-  border-right: 1px solid var(--border-color);
-  border-radius: 6px 6px 0 0;
+  background: #08090c;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  border-left: 1px solid rgba(255,255,255,0.05);
+  border-right: 1px solid rgba(255,255,255,0.05);
+  border-radius: 4px 4px 0 0;
   width: fit-content;
   margin-bottom: -1px;
   z-index: 5;
 }
 
 .active-file-tab-line {
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   width: 100%;
-  margin-bottom: 16px;
+  margin-bottom: 0px;
 }
 
 .workspace-canvas {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 20px;
+  background: #08090c;
+  border: none;
+  border-radius: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
   flex: 1;
+  overflow: hidden;
 }
 
 .canvas-header {
@@ -1106,12 +1119,20 @@ p {
   letter-spacing: 0.05em;
 }
 
-/* 3. Controls Right Sidebar panel & Gauge widgets */
 .controls-right-sidebar {
-  grid-column: span 3;
+  width: 320px;
+  min-width: 320px;
+  background: #0d0e15;
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  padding: 12px;
+  height: 100%;
+  overflow-y: auto;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  margin: 0;
 }
 
 .slider-group-crisp {
