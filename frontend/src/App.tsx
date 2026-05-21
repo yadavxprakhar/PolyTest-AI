@@ -7,7 +7,6 @@ import {
   Code,
   FolderOpen, 
   Binary,
-  Folder,
   FileCode,
   Bell,
   Activity,
@@ -877,6 +876,57 @@ function generateMockTestSuite(fileName: string, language: string, _framework: s
   return testCode;
 }
 
+// --- Dynamic File Tree Nodes for VS Code Tree Layout ---
+interface TreeNode {
+  name: string;
+  path: string;
+  isFolder: boolean;
+  fileItem?: FileItem;
+  children: Record<string, TreeNode>;
+}
+
+const buildFileTree = (fileList: FileItem[]) => {
+  const root: TreeNode = {
+    name: 'quantum-core-v2',
+    path: 'quantum-core-v2',
+    isFolder: true,
+    children: {}
+  };
+
+  fileList.forEach(file => {
+    const parts = file.file_path.split('/');
+    let current = root;
+    let currentPath = 'quantum-core-v2';
+
+    parts.forEach((part, index) => {
+      currentPath = `${currentPath}/${part}`;
+      const isLast = index === parts.length - 1;
+
+      if (isLast) {
+        current.children[part] = {
+          name: part,
+          path: currentPath,
+          isFolder: false,
+          fileItem: file,
+          children: {}
+        };
+      } else {
+        if (!current.children[part]) {
+          current.children[part] = {
+            name: part,
+            path: currentPath,
+            isFolder: true,
+            children: {}
+          };
+        }
+        current = current.children[part];
+      }
+    });
+  });
+
+  return root;
+};
+
 function App() {
   // Navigation State: 'landing' or 'console' or 'guide'
   const [viewMode, setViewMode] = useState<'landing' | 'console' | 'guide'>('landing');
@@ -887,6 +937,20 @@ function App() {
   const [projectRoot, setProjectRoot] = useState<string>('/Users/prakhar/Projects/Polytest AI ');
   const [files, setFiles] = useState<FileItem[]>(SANDBOX_FILES);
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(SANDBOX_FILES[1]); // PaymentService.ts
+  const [collapsedFolders, setCollapsedFolders] = useState<Record<string, boolean>>({
+    'quantum-core-v2': false,
+    'quantum-core-v2/src': false,
+    'quantum-core-v2/src/services': false,
+    'quantum-core-v2/src/api': false,
+    'quantum-core-v2/src/models': false,
+  });
+
+  const toggleFolder = (folderKey: string) => {
+    setCollapsedFolders(prev => ({
+      ...prev,
+      [folderKey]: !prev[folderKey]
+    }));
+  };
   const [isScanning, setIsScanning] = useState<boolean>(false);
   
   // Add Sandbox File States
@@ -1109,6 +1173,141 @@ function App() {
       return;
     }
     setIsScanning(false);
+  };
+
+  // Render collapsible VS Code style explorer tree recursively
+  const renderTreeNode = (node: TreeNode, depth: number = 0): React.ReactNode => {
+    const isCollapsed = collapsedFolders[node.path] ?? false;
+
+    if (node.isFolder) {
+      const hasChildren = Object.keys(node.children).length > 0;
+      return (
+        <div key={node.path} style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+          {/* Folder Header Row */}
+          <div 
+            onClick={() => toggleFolder(node.path)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '4px 6px',
+              fontSize: '11px',
+              color: 'var(--text-secondary)',
+              cursor: 'pointer',
+              userSelect: 'none',
+              borderRadius: '3px',
+              background: 'transparent',
+              transition: 'background 0.1s ease',
+            }}
+            className="vscode-folder-row"
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+          >
+            {/* Chevron Prefix arrow */}
+            <span style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              width: '12px',
+              color: '#888888',
+              fontSize: '9px',
+              fontFamily: 'monospace',
+              transform: isCollapsed ? 'rotate(0deg)' : 'rotate(90deg)',
+              transition: 'transform 0.15s ease'
+            }}>
+              ▶
+            </span>
+            <span style={{ 
+              fontWeight: depth === 0 ? '600' : '400',
+              color: depth === 0 ? '#ffffff' : 'var(--text-secondary)',
+              fontFamily: 'var(--font-sans)',
+            }}>{node.name}</span>
+          </div>
+
+          {/* Children Container */}
+          {!isCollapsed && hasChildren && (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              borderLeft: '1px solid rgba(255, 255, 255, 0.06)',
+              marginLeft: '11px',
+              paddingLeft: '6px'
+            }}>
+              {Object.values(node.children)
+                .sort((a, b) => {
+                  // Folders first, then files alphabetically
+                  if (a.isFolder && !b.isFolder) return -1;
+                  if (!a.isFolder && b.isFolder) return 1;
+                  return a.name.localeCompare(b.name);
+                })
+                .map(child => renderTreeNode(child, depth + 1))}
+            </div>
+          )}
+        </div>
+      );
+    } else {
+      // Render file node
+      const file = node.fileItem!;
+      const isSelected = selectedFile?.file_path === file.file_path;
+      const coverage = node.name === 'PaymentService.ts' ? '98%' : node.name === 'UserAuth.ts' ? '92%' : '84%';
+      
+      return (
+        <div
+          key={node.path}
+          onClick={() => handleFileSelect(file)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '4px 6px',
+            fontSize: '11px',
+            cursor: 'pointer',
+            borderRadius: '3px',
+            background: isSelected ? 'rgba(55, 148, 255, 0.15)' : 'transparent',
+            borderLeft: isSelected ? '2px solid var(--accent-cyan)' : '2px solid transparent',
+            color: isSelected ? '#ffffff' : 'var(--text-secondary)',
+            userSelect: 'none',
+            transition: 'all 0.1s ease',
+            margin: '1px 0'
+          }}
+          className="vscode-file-row"
+          onMouseEnter={(e) => {
+            if (!isSelected) {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+              e.currentTarget.style.color = '#ffffff';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isSelected) {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = 'var(--text-secondary)';
+            }
+          }}
+        >
+          <span style={{ 
+            overflow: 'hidden', 
+            textOverflow: 'ellipsis', 
+            whiteSpace: 'nowrap',
+            fontWeight: isSelected ? '500' : '400',
+            fontFamily: 'var(--font-sans)',
+          }}>
+            {node.name}
+          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+            <span style={{ 
+              fontSize: '8px', 
+              fontFamily: 'var(--font-mono)', 
+              color: 'var(--accent-cyan)', 
+              background: 'rgba(55, 148, 255, 0.1)', 
+              padding: '1px 4px', 
+              borderRadius: '2px' 
+            }}>
+              {coverage}
+            </span>
+          </div>
+        </div>
+      );
+    }
   };
 
   // 3. Analyze Target Code file
@@ -1368,18 +1567,6 @@ function App() {
       return;
     }
     setIsGenerating(false);
-  };
-
-  const getLanguageColor = (lang: string) => {
-    switch (lang.toLowerCase()) {
-      case 'python': return '#3572A5';
-      case 'javascript': return '#f1e05a';
-      case 'typescript': return '#3178c6';
-      case 'java': return '#b07219';
-      case 'go': return '#00ADD8';
-      case 'c++': return '#f34b7d';
-      default: return '#94a3b8';
-    }
   };
 
   // Utility to split code into syntax highlighted sections
@@ -1938,43 +2125,14 @@ function App() {
               </div>
 
               {/* Directory Tree */}
-              <div className="file-tree-container" style={{ width: '100%' }}>
-                <div className="tree-node-folder flex-row-align">
-                  <Folder className="w-3.5 h-3.5 text-purple-400 fill-current" />
-                  <span>quantum-core-v2</span>
-                </div>
-                
-                <div className="tree-node-nested-line-container">
-                  <div className="tree-node-folder flex-row-align">
-                    <Folder className="w-3.5 h-3.5 text-blue-500 fill-current" style={{ color: 'var(--accent-cyan)' }} />
-                    <span>src</span>
-                  </div>
-
-                  <div className="tree-node-nested-line-container">
-                    {files.filter(file => file.file_path.toLowerCase().includes(searchQuery.toLowerCase())).map((file, idx) => {
-                      const isSelected = selectedFile?.file_path === file.file_path;
-                      const baseName = file.file_path.split('/').pop() || '';
-                      const coverage = baseName === 'PaymentService.ts' ? '98%' : baseName === 'UserAuth.ts' ? '92%' : '84%';
-                      return (
-                        <div
-                          key={idx}
-                          onClick={() => handleFileSelect(file)}
-                          className={`file-item-node ${isSelected ? 'selected' : ''}`}
-                          style={{ justifyContent: 'space-between', display: 'flex', width: '100%' }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
-                            <FileCode className="w-3.5 h-3.5" style={{ color: getLanguageColor(file.language), flexShrink: 0 }} />
-                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{baseName}</span>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                            <span style={{ fontSize: '8px', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)', background: 'rgba(55, 148, 255, 0.1)', padding: '1px 4px', borderRadius: '3px' }}>{coverage}</span>
-                            <span style={{ fontSize: '8px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>cached</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+              <div className="file-tree-container" style={{ width: '100%', overflowY: 'auto', maxHeight: '350px', paddingRight: '4px' }}>
+                {(() => {
+                  const filteredFiles = files.filter(file => 
+                    file.file_path.toLowerCase().includes(searchQuery.toLowerCase())
+                  );
+                  const treeRoot = buildFileTree(filteredFiles);
+                  return renderTreeNode(treeRoot);
+                })()}
               </div>
 
               {/* Historical Coverage Performance Mini-Charts Analytics */}
