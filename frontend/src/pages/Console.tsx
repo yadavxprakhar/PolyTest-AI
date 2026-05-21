@@ -2239,10 +2239,6 @@ function Console() {
 
             {/* Left Side: Directory folders & Mini-charts */}
             <section className="ide-explorer-panel crisp-panel">
-              <div className="sidebar-brand-header">
-                <Cpu className="w-4.5 h-4.5 text-cyan-400" />
-                <span className="sidebar-brand-title">PolyTest-AI</span>
-              </div>
 
               <div className="sidebar-search-wrapper" style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
                 <div style={{ position: 'relative', flex: 1, display: 'flex', alignItems: 'center' }}>
