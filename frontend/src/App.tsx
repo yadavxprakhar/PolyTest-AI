@@ -958,6 +958,7 @@ function App() {
   
   // Add Sandbox File States
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
   
   // Code Inspection States
   const [parsedStructure, setParsedStructure] = useState<ParsedStructure | null>(SANDBOX_STRUCTURES['src/services/PaymentService.ts']);
@@ -1452,6 +1453,86 @@ function App() {
     reader.readAsText(file);
     
     // Clear input value so selecting the same file again triggers change event
+    event.target.value = '';
+  };
+
+  // Add Custom Sandbox Folder via native file selector
+  const handleNativeFolderSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const filesList = event.target.files;
+    if (!filesList || filesList.length === 0) return;
+
+    const fileArray = Array.from(filesList);
+    let successCount = 0;
+    
+    fileArray.forEach(file => {
+      // webkitRelativePath contains the full relative path from the selected folder
+      const fileName = file.webkitRelativePath || file.name; 
+      const extension = fileName.split('.').pop()?.toLowerCase() || '';
+
+      // Infer language and framework
+      let language = 'Unknown';
+      let framework = 'Unknown';
+
+      if (extension === 'ts' || extension === 'tsx') {
+        language = 'TypeScript';
+        framework = 'Jest';
+      } else if (extension === 'js' || extension === 'jsx') {
+        language = 'JavaScript';
+        framework = 'Jest';
+      } else if (extension === 'py') {
+        language = 'Python';
+        framework = 'pytest';
+      } else if (extension === 'go') {
+        language = 'Go';
+        framework = 'testing';
+      } else if (extension === 'java') {
+        language = 'Java';
+        framework = 'JUnit 5';
+      } else if (['cpp', 'h', 'cc', 'hpp', 'c'].includes(extension)) {
+        language = 'C++';
+        framework = 'Google Test';
+      } else {
+        // Skip unknown extensions or binary files for simplicity in a folder upload
+        return; 
+      }
+
+      const formattedPath = `src/${fileName}`;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target?.result as string || '';
+
+        MOCK_SOURCE_CODE[formattedPath] = content;
+        const structure = parseFileAST(fileName, content);
+        SANDBOX_STRUCTURES[formattedPath] = structure;
+        MOCK_GENERATED_CODE[formattedPath] = generateMockTestSuite(fileName, language, framework, structure);
+
+        const newFileItem: FileItem = {
+          file_path: formattedPath,
+          language,
+          framework
+        };
+
+        setFiles(prev => {
+          if (prev.some(f => f.file_path === formattedPath)) {
+            return prev;
+          }
+          return [...prev, newFileItem];
+        });
+        
+        successCount++;
+        // If it's the last successful file to load, you could optionally auto-select the first one or just log
+      };
+      
+      reader.readAsText(file);
+    });
+
+    setTerminalLogs(prev => [
+      ...prev, 
+      `🟢 Native folder upload initiated. Processing ${fileArray.length} files...`
+    ]);
+
+    // Clear input value
     event.target.value = '';
   };
 
@@ -2115,7 +2196,7 @@ function App() {
                         <FilePlus className="w-4 h-4" strokeWidth={1.5} />
                       </button>
                       <button 
-                        onClick={() => {}}
+                        onClick={() => folderInputRef.current?.click()}
                         style={{ color: '#888888', background: 'none', border: 'none', cursor: 'pointer', outline: 'none', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         title="New Folder"
                         onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
@@ -2167,6 +2248,13 @@ function App() {
                     ref={fileInputRef} 
                     onChange={handleNativeFileSelect} 
                     style={{ display: 'none' }} 
+                  />
+                  <input 
+                    type="file" 
+                    ref={folderInputRef} 
+                    onChange={handleNativeFolderSelect} 
+                    style={{ display: 'none' }} 
+                    {...({ webkitdirectory: "", directory: "" } as any)}
                   />
                 </div>
               </div>
