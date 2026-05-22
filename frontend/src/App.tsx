@@ -5,6 +5,7 @@ import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Settings from './pages/Settings';
+import Documentation from './pages/Documentation';
 import './App.css';
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/console" element={<Console />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/docs" element={<Documentation />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>

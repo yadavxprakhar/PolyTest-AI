@@ -93,7 +93,7 @@ const LandingPage: React.FC = () => {
         </div>
         <div style={{ display: 'flex', gap: '32px', fontSize: '14px', fontWeight: 500, color: 'var(--text-secondary)' }}>
           <span style={{ cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}>Features</span>
-          <span style={{ cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}>Documentation</span>
+          <span onClick={() => navigate('/docs')} style={{ cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}>Documentation</span>
           <span style={{ cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}>Pricing</span>
         </div>
         <div style={{ display: 'flex', gap: '16px' }}>
@@ -149,6 +149,7 @@ const LandingPage: React.FC = () => {
               Start Building Free <ChevronRight className="w-4 h-4" />
             </button>
             <button 
+              onClick={() => navigate('/docs')}
               style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '16px 32px', background: 'rgba(255,255,255,0.03)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', cursor: 'pointer', fontSize: '16px', fontWeight: 600, transition: 'all 0.2s' }}
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
               onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
@@ -304,11 +305,11 @@ const LandingPage: React.FC = () => {
           <div className="footer-links-col" style={{ gridColumn: 'span 2' }}>
             <h5 className="footer-col-header">Resources</h5>
             <ul className="footer-links-list">
-              <li><a href="#guide">Platform User Guide</a></li>
-              <li><a href="#vscode">VS Code Plugin</a></li>
-              <li><a href="#api">Local REST API</a></li>
-              <li><a href="#docs">Developer SDKs</a></li>
-              <li><a href="#docs">Platform Architecture</a></li>
+              <li><a href="/docs" onClick={(e) => { e.preventDefault(); navigate('/docs'); }}>Platform User Guide</a></li>
+              <li><a href="/docs" onClick={(e) => { e.preventDefault(); navigate('/docs'); }}>VS Code Plugin</a></li>
+              <li><a href="/docs" onClick={(e) => { e.preventDefault(); navigate('/docs'); }}>Local REST API</a></li>
+              <li><a href="/docs" onClick={(e) => { e.preventDefault(); navigate('/docs'); }}>Developer SDKs</a></li>
+              <li><a href="/docs" onClick={(e) => { e.preventDefault(); navigate('/docs'); }}>Platform Architecture</a></li>
             </ul>
           </div>
 
