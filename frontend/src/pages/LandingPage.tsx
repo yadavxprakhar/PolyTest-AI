@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Zap, Shield, Cpu, Code2, ChevronRight, Terminal, Star } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Zap, Shield, Cpu, Code2, ChevronRight, Terminal, Star, ChevronDown } from 'lucide-react';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -186,6 +187,85 @@ const LandingPage: React.FC = () => {
             </motion.div>
           ))}
         </motion.div>
+        {/* FAQ Section */}
+        <div style={{ marginTop: '160px', width: '100%', maxWidth: '800px', padding: '0 24px', position: 'relative', zIndex: 10 }}>
+          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+            <h2 style={{ fontSize: '36px', fontWeight: 700, color: '#fff', marginBottom: '16px' }}>Frequently Asked Questions</h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '16px' }}>Everything you need to know about PolyTest AI.</p>
+          </div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {[
+              {
+                q: "Do I need an internet connection to use PolyTest AI?",
+                a: "No. PolyTest AI's execution engine and AST parser run completely offline on your local machine, ensuring absolute privacy and zero latency."
+              },
+              {
+                q: "What languages are supported?",
+                a: "Our polyglot architecture currently supports TypeScript, JavaScript, Python, Go, and Rust natively, with more languages being added constantly."
+              },
+              {
+                q: "How does the AI analysis work offline?",
+                a: "We use a highly optimized, lightweight local model for basic analysis. For advanced deep-code reasoning, we securely integrate with leading cloud APIs when you choose to connect."
+              },
+              {
+                q: "Can I self-host the Enterprise version?",
+                a: "Yes! Our Enterprise tier provides Docker containers and Kubernetes manifests for fully air-gapped on-premise deployments."
+              }
+            ].map((faq, idx) => (
+              <div 
+                key={idx} 
+                style={{ 
+                  background: 'rgba(255, 255, 255, 0.02)', 
+                  border: '1px solid rgba(255, 255, 255, 0.05)', 
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  backdropFilter: 'blur(10px)'
+                }}
+              >
+                <button
+                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
+                  style={{
+                    width: '100%',
+                    padding: '24px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#fff',
+                    fontSize: '16px',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    textAlign: 'left'
+                  }}
+                >
+                  {faq.q}
+                  <motion.div
+                    animate={{ rotate: openFaq === idx ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ChevronDown className="w-5 h-5 text-gray-500" />
+                  </motion.div>
+                </button>
+                <AnimatePresence>
+                  {openFaq === idx && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div style={{ padding: '0 24px 24px', color: 'var(--text-secondary)', lineHeight: 1.6, fontSize: '15px' }}>
+                        {faq.a}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ))}
+          </div>
+        </div>
       </main>
 
       {/* SaaS Footer */}
